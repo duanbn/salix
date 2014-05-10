@@ -38,21 +38,26 @@ public class RpcInvocationHandler implements InvocationHandler {
 			throw new RuntimeException("获取连接失败.");
 		}
 
-		RpcMessage msg = new RpcMessage();
-		msg.setServiceName(serviceName);
-		msg.setMethodName(method.getName());
-		msg.setArgs(args);
+		Object returnVal = null;
+		try {
+			RpcMessage msg = new RpcMessage();
+			msg.setServiceName(serviceName);
+			msg.setMethodName(method.getName());
+			msg.setArgs(args);
 
-		conn.send(msg);
-		Object returnVal = conn.receive().getBody();
-		if (returnVal == null) {
+			conn.send(msg);
+			returnVal = conn.receive().getBody();
+		} finally {
+			conn.close();
+		}
+
+		if (returnVal != null) {
+			if (returnVal instanceof Exception) {
+				throw (Exception) returnVal;
+			}
 			return returnVal;
 		}
 
-		if (returnVal instanceof Exception) {
-			throw (Exception) returnVal;
-		}
-
-		return returnVal;
+		return null;
 	}
 }

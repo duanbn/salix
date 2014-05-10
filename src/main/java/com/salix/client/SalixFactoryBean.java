@@ -5,7 +5,7 @@ import java.lang.reflect.Proxy;
 import com.salix.client.connection.ConnectionPool;
 import com.salix.client.connection.MyConnectionPool;
 
-public class PinusFactoryBean {
+public class SalixFactoryBean {
 
 	private ConnectionPool cpool;
 

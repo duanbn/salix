@@ -1,5 +1,6 @@
 package com.salix.server;
 
+import org.apache.log4j.Logger;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
@@ -13,6 +14,8 @@ import com.salix.core.ser.Serializer;
 import com.salix.server.processor.IProcessor;
 
 public class DispatchHandler extends IoHandlerAdapter {
+
+	public static final Logger LOG = Logger.getLogger(DispatchHandler.class);
 
 	private Serializer ser;
 	private Deserializer deser;
@@ -43,6 +46,5 @@ public class DispatchHandler extends IoHandlerAdapter {
 
 	@Override
 	public void sessionIdle(IoSession session, IdleStatus status) throws Exception {
-		System.out.println("IDLE " + session.getIdleCount(status));
 	}
 }
