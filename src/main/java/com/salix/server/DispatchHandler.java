@@ -1,21 +1,34 @@
 package com.salix.server;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.log4j.Logger;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
-import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
 
 import com.salix.core.message.Message;
+import com.salix.core.message.ShutdownMessage;
 import com.salix.core.ser.Deserializer;
 import com.salix.core.ser.MyDeserializer;
 import com.salix.core.ser.MySerializer;
+import com.salix.core.ser.SerializeException;
 import com.salix.core.ser.Serializer;
 import com.salix.server.processor.IProcessor;
 
 public class DispatchHandler extends IoHandlerAdapter {
 
 	public static final Logger LOG = Logger.getLogger(DispatchHandler.class);
+
+	private static AtomicBoolean isTobeShutdown = new AtomicBoolean(false);
+
+	private static final BlockingQueue<Task> messageQ = new LinkedBlockingQueue<Task>();
+	private static int threadNum = Runtime.getRuntime().availableProcessors() * 2;
+	private static final ExecutorService threadPool = Executors.newFixedThreadPool(threadNum);
 
 	private Serializer ser;
 	private Deserializer deser;
@@ -26,6 +39,21 @@ public class DispatchHandler extends IoHandlerAdapter {
 		this.ser = MySerializer.getInstance();
 		this.deser = MyDeserializer.getInstance();
 		this.pl = pl;
+
+		new Thread() {
+			public void run() {
+				for (Task task : messageQ) {
+					threadPool.submit(new ProcessTask(task));
+				}
+			}
+		}.start();
+	}
+
+	@Override
+	public void sessionCreated(IoSession session) throws Exception {
+		if (isTobeShutdown.get()) {
+			session.close(true);
+		}
 	}
 
 	@Override
@@ -33,18 +61,61 @@ public class DispatchHandler extends IoHandlerAdapter {
 		byte[] pkg = (byte[]) message;
 		Message in = deser.deser(pkg, Message.class);
 
-		IProcessor processor = pl.get(in.getClass());
-		Message out = processor.process(in);
+		if (in instanceof ShutdownMessage) {
+			isTobeShutdown.set(true);
+			new Thread() {
+				public void run() {
+					while (true) {
+						if (messageQ.isEmpty()) {
+							System.exit(0);
+						}
 
-		pkg = ser.ser(out);
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+						}
+					}
+				}
+			}.start();
+		}
 
-		IoBuffer buf = IoBuffer.allocate(4 + pkg.length);
-		buf.putInt(pkg.length).put(pkg);
-		buf.flip();
-		session.write(buf);
+		if (!isTobeShutdown.get()) {
+			Task task = new Task();
+			task.session = session;
+			task.msg = in;
+			messageQ.put(task);
+		}
 	}
 
-	@Override
-	public void sessionIdle(IoSession session, IdleStatus status) throws Exception {
+	private class ProcessTask implements Runnable {
+
+		private IoSession session;
+		private Message in;
+
+		public ProcessTask(Task task) {
+			this.session = task.session;
+			this.in = task.msg;
+		}
+
+		public void run() {
+			IProcessor processor = pl.get(in.getClass());
+			Message out = processor.process(in);
+
+			byte[] pkg = null;
+			try {
+				pkg = ser.ser(out);
+				IoBuffer buf = IoBuffer.allocate(4 + pkg.length);
+				buf.putInt(pkg.length).put(pkg);
+				buf.flip();
+				session.write(buf);
+			} catch (SerializeException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private class Task {
+		public IoSession session;
+		public Message msg;
 	}
 }

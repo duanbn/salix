@@ -16,9 +16,9 @@ import org.apache.log4j.Logger;
  * @author duanbn
  * @since 1.1
  */
-public class DefaultConnection extends AbstractConnection
+public class SingleConnection extends AbstractConnection
 {
-    public static final Logger log = Logger.getLogger(DefaultConnection.class);
+    public static final Logger log = Logger.getLogger(SingleConnection.class);
 
     /**
      * 创建一个连接
@@ -28,7 +28,7 @@ public class DefaultConnection extends AbstractConnection
      *
      * @throws IOException 连接异常
      */
-    public DefaultConnection(String host, int port) throws IOException
+    public SingleConnection(String host, int port) throws IOException
     {
         super(host, port);
     }

@@ -13,10 +13,6 @@ public class SalixFactoryBean {
 
 	private int port;
 
-	private String serviceName;
-
-	private String interfaceClass;
-
 	public Object create(String serviceName, String interfaceClass) throws ClassNotFoundException {
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		Class<?> clazz = Class.forName(interfaceClass);
@@ -29,7 +25,7 @@ public class SalixFactoryBean {
 		this.cpool.startup();
 	}
 
-	public void destroy() {
+	public void shutdown() {
 		this.cpool.shutdown();
 	}
 
@@ -47,22 +43,6 @@ public class SalixFactoryBean {
 
 	public void setPort(int port) {
 		this.port = port;
-	}
-
-	public String getServiceName() {
-		return serviceName;
-	}
-
-	public void setServiceName(String serviceName) {
-		this.serviceName = serviceName;
-	}
-
-	public String getInterfaceClass() {
-		return interfaceClass;
-	}
-
-	public void setInterfaceClass(String interfaceClass) {
-		this.interfaceClass = interfaceClass;
 	}
 
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 
 import com.salix.core.message.Message;
+import com.salix.core.message.ShutdownMessage;
 
 /**
  * 连接池中的连接器.

@@ -32,7 +32,7 @@ public interface Connection {
      * @return 接收到的信息
      */
     public Message receive() throws IOException;
-
+    
     /**
      * 逻辑关闭连接. 关闭连接并将状态设置为非活动.从连接池中获取此连接的时候 使用逻辑关闭
      */
