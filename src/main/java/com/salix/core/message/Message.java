@@ -1,6 +1,6 @@
 package com.salix.core.message;
 
-import com.salix.core.ser.Serializable;
+import java.io.Serializable;
 
 public class Message implements Serializable {
 

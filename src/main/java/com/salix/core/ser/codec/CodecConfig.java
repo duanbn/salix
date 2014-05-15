@@ -1,14 +1,58 @@
 package com.salix.core.ser.codec;
 
-import java.util.*;
-import java.util.concurrent.*;
-
-import com.salix.core.ser.Serializable;
-import com.salix.core.ser.codec.my.*;
-import com.salix.core.util.ReflectUtil;
-import com.salix.exception.CodecException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.log4j.Logger;
+
+import com.salix.core.ser.codec.my.BooleanArrayCodec;
+import com.salix.core.ser.codec.my.BooleanCodec;
+import com.salix.core.ser.codec.my.ByteArrayCodec;
+import com.salix.core.ser.codec.my.ByteCodec;
+import com.salix.core.ser.codec.my.CharArrayCodec;
+import com.salix.core.ser.codec.my.CharCodec;
+import com.salix.core.ser.codec.my.CharacterArrayCodec;
+import com.salix.core.ser.codec.my.ClassCodec;
+import com.salix.core.ser.codec.my.DoubleArrayCodec;
+import com.salix.core.ser.codec.my.DoubleCodec;
+import com.salix.core.ser.codec.my.EnumArrayCodec;
+import com.salix.core.ser.codec.my.EnumCodec;
+import com.salix.core.ser.codec.my.ExceptionCodec;
+import com.salix.core.ser.codec.my.FloatArrayCodec;
+import com.salix.core.ser.codec.my.FloatCodec;
+import com.salix.core.ser.codec.my.IntArrayCodec;
+import com.salix.core.ser.codec.my.IntCodec;
+import com.salix.core.ser.codec.my.IntegerArrayCodec;
+import com.salix.core.ser.codec.my.ListCodec;
+import com.salix.core.ser.codec.my.LongArrayCodec;
+import com.salix.core.ser.codec.my.LongCodec;
+import com.salix.core.ser.codec.my.MapCodec;
+import com.salix.core.ser.codec.my.OBooleanArrayCodec;
+import com.salix.core.ser.codec.my.OByteArrayCodec;
+import com.salix.core.ser.codec.my.ODoubleArrayCodec;
+import com.salix.core.ser.codec.my.OFloatArrayCodec;
+import com.salix.core.ser.codec.my.OLongArrayCodec;
+import com.salix.core.ser.codec.my.OShortArrayCodec;
+import com.salix.core.ser.codec.my.ObjectArrayCodec;
+import com.salix.core.ser.codec.my.ObjectCodec;
+import com.salix.core.ser.codec.my.SetCodec;
+import com.salix.core.ser.codec.my.ShortArrayCodec;
+import com.salix.core.ser.codec.my.ShortCodec;
+import com.salix.core.ser.codec.my.StringArrayCodec;
+import com.salix.core.ser.codec.my.StringCodec;
+import com.salix.core.util.ReflectUtil;
+import com.salix.exception.CodecException;
 
 /**
  * 编码类配置文件.
