@@ -42,7 +42,14 @@ public class DispatchHandler extends IoHandlerAdapter {
 
 		new Thread() {
 			public void run() {
-				for (Task task : messageQ) {
+				while (true) {
+					Task task = null;
+					try {
+						task = messageQ.take();
+					} catch (InterruptedException e) {
+						LOG.warn(e.getMessage());
+						continue;
+					}
 					threadPool.submit(new ProcessTask(task));
 				}
 			}

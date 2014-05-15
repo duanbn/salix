@@ -1,5 +1,6 @@
 package com.salix.client;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
@@ -45,19 +46,26 @@ public class RpcInvocationHandler implements InvocationHandler {
 			msg.setMethodName(method.getName());
 			msg.setArgs(args);
 
-			conn.send(msg);
-			returnVal = conn.receive().getBody();
+			while (true) {
+				try {
+					conn.send(msg);
+					returnVal = conn.receive().getBody();
+					break;
+				} catch (IOException e) {
+					Thread.sleep(200);
+				}
+			}
+
+			if (returnVal != null) {
+				if (returnVal instanceof Exception) {
+					throw (Exception) returnVal;
+				}
+				return returnVal;
+			}
+
+			return null;
 		} finally {
 			conn.close();
 		}
-
-		if (returnVal != null) {
-			if (returnVal instanceof Exception) {
-				throw (Exception) returnVal;
-			}
-			return returnVal;
-		}
-
-		return null;
 	}
 }
