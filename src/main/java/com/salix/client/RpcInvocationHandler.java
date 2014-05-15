@@ -44,6 +44,7 @@ public class RpcInvocationHandler implements InvocationHandler {
 			RpcMessage msg = new RpcMessage();
 			msg.setServiceName(serviceName);
 			msg.setMethodName(method.getName());
+			msg.setParamTypes(method.getParameterTypes());
 			msg.setArgs(args);
 
 			while (true) {

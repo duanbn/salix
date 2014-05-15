@@ -6,6 +6,7 @@ public class RpcMessage extends Message {
 	
 	private String methodName;
 
+	private Class<?>[] paramTypes;
 	private Object[] args;
 
 	public RpcMessage() {
@@ -30,6 +31,14 @@ public class RpcMessage extends Message {
 
 	public void setMethodName(String methodName) {
 		this.methodName = methodName;
+	}
+
+	public Class<?>[] getParamTypes() {
+		return paramTypes;
+	}
+
+	public void setParamTypes(Class<?>[] paramTypes) {
+		this.paramTypes = paramTypes;
 	}
 
 	public Object[] getArgs() {

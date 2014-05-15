@@ -6,7 +6,7 @@ import com.salix.core.message.Message;
 
 public interface IProcessor {
 
-	public Message process(Message in);
+	public Message process(Message in) throws Throwable;
 	
 	public void setSpringCtx(ApplicationContext springCtx);
 

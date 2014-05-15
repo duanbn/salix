@@ -1,5 +1,6 @@
 package com.salix.server;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -107,20 +108,28 @@ public class DispatchHandler extends IoHandlerAdapter {
 
 		public void run() {
 			IProcessor processor = pl.get(in.getClass());
-			Message out = processor.process(in);
 
 			byte[] pkg = null;
+			Message out = null;
+			try {
+				out = processor.process(in);
+				pkg = ser.ser(out);
+			} catch (Throwable e) {
+				out = new Message();
+				if (e instanceof InvocationTargetException) {
+					out.setBody(((InvocationTargetException) e).getTargetException());
+				} else {
+					out.setBody(new ServerInternalException(e));
+				}
+
+			}
+
 			try {
 				pkg = ser.ser(out);
 			} catch (SerializeException e) {
-				out = new Message();
-				out.setBody(new ServerInternalException(e));
-				try {
-					pkg = ser.ser(out);
-				} catch (SerializeException e1) {
-					LOG.error(e.getMessage(), e);
-				}
+				LOG.error(e.getMessage(), e);
 			}
+
 			IoBuffer buf = IoBuffer.allocate(4 + pkg.length);
 			buf.putInt(pkg.length).put(pkg);
 			buf.flip();

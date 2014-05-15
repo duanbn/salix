@@ -7,15 +7,26 @@ import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 
 public class RpcProtocolDecoder implements ProtocolDecoder {
 
-	public void decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws Exception {
-		int pkgLenth = in.getInt();
+	private static final String SESS_ATTR_IOBUFFER = "sess_attr_iobuffer";
 
-		IoBuffer pkg = IoBuffer.allocate(pkgLenth);
-		while (pkg.hasRemaining()) {
+	public void decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws Exception {
+
+		IoBuffer pkg = (IoBuffer) session.getAttribute(SESS_ATTR_IOBUFFER);
+		if (pkg == null) {
+			int pkgLenth = in.getInt();
+			pkg = IoBuffer.allocate(pkgLenth);
+			pkg.put(in);
+			if (pkg.hasRemaining()) {
+				session.setAttribute(SESS_ATTR_IOBUFFER, pkg);
+			}
+		} else {
 			pkg.put(in);
 		}
-
-		out.write(pkg.array());
+		if (!pkg.hasRemaining()) {
+			session.removeAttribute(SESS_ATTR_IOBUFFER);
+			out.write(pkg.array());
+		}
+		
 	}
 
 	public void finishDecode(IoSession session, ProtocolDecoderOutput out) throws Exception {
