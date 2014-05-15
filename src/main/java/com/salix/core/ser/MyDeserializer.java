@@ -2,8 +2,8 @@ package com.salix.core.ser;
 
 import com.salix.core.ser.codec.*;
 import com.salix.core.io.*;
-import com.salix.core.ser.codec.exception.CodecException;
 import com.salix.core.util.GzipCompressUtil;
+import com.salix.exception.CodecException;
 
 /**
  * 反序列化工具类，解析一个二进制的字节数组转化成一个Java对象. 读取编码标志位确定转化为那个对象.

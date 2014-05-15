@@ -1,4 +1,4 @@
-package com.salix.core.ser.codec.exception;
+package com.salix.exception;
 
 /**
  * codec exception.

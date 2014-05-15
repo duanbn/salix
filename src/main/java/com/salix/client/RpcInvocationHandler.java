@@ -57,8 +57,8 @@ public class RpcInvocationHandler implements InvocationHandler {
 			}
 
 			if (returnVal != null) {
-				if (returnVal instanceof Exception) {
-					throw (Exception) returnVal;
+				if (returnVal instanceof Throwable) {
+					throw (Throwable) returnVal;
 				}
 				return returnVal;
 			}

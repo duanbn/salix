@@ -5,8 +5,8 @@ import java.util.concurrent.*;
 
 import com.salix.core.ser.Serializable;
 import com.salix.core.ser.codec.my.*;
-import com.salix.core.ser.codec.exception.CodecException;
 import com.salix.core.util.ReflectUtil;
+import com.salix.exception.CodecException;
 
 import org.apache.log4j.Logger;
 

@@ -6,8 +6,8 @@ import java.util.zip.*;
 import java.lang.reflect.*;
 
 import com.salix.core.ser.codec.*;
-import com.salix.core.ser.codec.exception.CodecException;
 import com.salix.core.io.*;
+import com.salix.exception.CodecException;
 
 /**
  * @author duanbn

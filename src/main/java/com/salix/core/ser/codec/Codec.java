@@ -1,7 +1,8 @@
 package com.salix.core.ser.codec;
 
-import com.salix.core.io.*;
-import com.salix.core.ser.codec.exception.*;
+import com.salix.core.io.DataInput;
+import com.salix.core.io.DataOutput;
+import com.salix.exception.CodecException;
 
 /**
  * 序列化编码接口.

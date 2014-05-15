@@ -18,6 +18,7 @@ import com.salix.core.ser.MyDeserializer;
 import com.salix.core.ser.MySerializer;
 import com.salix.core.ser.SerializeException;
 import com.salix.core.ser.Serializer;
+import com.salix.exception.ServerInternalException;
 import com.salix.server.processor.IProcessor;
 
 public class DispatchHandler extends IoHandlerAdapter {
@@ -111,13 +112,19 @@ public class DispatchHandler extends IoHandlerAdapter {
 			byte[] pkg = null;
 			try {
 				pkg = ser.ser(out);
-				IoBuffer buf = IoBuffer.allocate(4 + pkg.length);
-				buf.putInt(pkg.length).put(pkg);
-				buf.flip();
-				session.write(buf);
 			} catch (SerializeException e) {
-				throw new RuntimeException(e);
+				out = new Message();
+				out.setBody(new ServerInternalException(e));
+				try {
+					pkg = ser.ser(out);
+				} catch (SerializeException e1) {
+					LOG.error(e.getMessage(), e);
+				}
 			}
+			IoBuffer buf = IoBuffer.allocate(4 + pkg.length);
+			buf.putInt(pkg.length).put(pkg);
+			buf.flip();
+			session.write(buf);
 		}
 	}
 

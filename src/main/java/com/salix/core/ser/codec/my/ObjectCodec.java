@@ -1,11 +1,14 @@
 package com.salix.core.ser.codec.my;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Field;
 
-import com.salix.core.ser.codec.*;
-import com.salix.core.io.*;
+import com.salix.core.io.DataInput;
+import com.salix.core.io.DataOutput;
+import com.salix.core.ser.codec.Codec;
+import com.salix.core.ser.codec.CodecConfig;
+import com.salix.core.ser.codec.CodecType;
 import com.salix.core.util.ReflectUtil;
-import com.salix.core.ser.codec.exception.*;
+import com.salix.exception.CodecException;
 
 /**
  * 这个类只能序列化自定义对象，不能将基本类型当作对象来进行序列化，否则会发生错误.
@@ -80,7 +83,7 @@ public class ObjectCodec implements Codec<Object>
                 codec.encode(output, fvalue, config);
             }
 
-        } catch (Exception e) {
+        } catch (IllegalAccessException e) {
             throw new CodecException(e);
         }
     }
