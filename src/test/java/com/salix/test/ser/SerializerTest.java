@@ -11,7 +11,6 @@ import java.util.TreeSet;
 
 import org.junit.Test;
 
-import com.salix.core.message.Message;
 import com.salix.core.ser.DeserializeException;
 import com.salix.core.ser.Deserializer;
 import com.salix.core.ser.MyDeserializer;
@@ -194,11 +193,17 @@ public class SerializerTest extends BaseTest {
 	@Test
 	public void testMap() {
 		try {
-			Map<String, SubModel> map = new HashMap<String, SubModel>();
-			map.put("aa", new SubModel());
-			map.put("bb", new SubModel());
+			Map<String, List<SubModel>> map = new HashMap<String, List<SubModel>>();
+			List<SubModel> list1 = new ArrayList<SubModel>();
+			list1.add(new SubModel());
+			list1.add(new SubModel());
+			List<SubModel> list2 = new ArrayList<SubModel>();
+			list2.add(new SubModel());
+			list2.add(new SubModel());
+			map.put("aa", list1);
+			map.put("bb", list2);
 
-			byte[] b = ser.ser(map);
+			byte[] b = ser.ser(map, false);
 			showLength(b);
 
 			b = writeObject(map);

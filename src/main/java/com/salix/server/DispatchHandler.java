@@ -96,6 +96,11 @@ public class DispatchHandler extends IoHandlerAdapter {
 		}
 	}
 
+	@Override
+	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
+		cause.printStackTrace();
+	}
+
 	private class ProcessTask implements Runnable {
 
 		private IoSession session;

@@ -1,7 +1,10 @@
 package com.salix.test;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class SubModel extends BaseTest implements Serializable, Comparable<SubModel> {
@@ -64,6 +67,15 @@ public class SubModel extends BaseTest implements Serializable, Comparable<SubMo
 	public String s13;
 	public String s14;
 
+	public Date date;
+	public Date[] dates;
+	public java.sql.Date sqlDate;
+	public java.sql.Date[] sqlDates;
+	public Calendar cal;
+	public Calendar[] cals;
+	public Timestamp time;
+	public Timestamp[] times;
+
 	public EnumTest et = EnumTest.A;
 	public EnumTest[] ets = new EnumTest[] { EnumTest.A, null, EnumTest.B };
 
@@ -84,6 +96,17 @@ public class SubModel extends BaseTest implements Serializable, Comparable<SubMo
 		s12 = genWord(100);
 		s13 = genWord(100);
 		s14 = genWord(100);
+
+		date = new Date();
+		dates = new Date[] { new Date(), new Date(), new Date() };
+		sqlDate = new java.sql.Date(System.currentTimeMillis());
+		sqlDates = new java.sql.Date[] { new java.sql.Date(System.currentTimeMillis()),
+				new java.sql.Date(System.currentTimeMillis()) };
+		cal = Calendar.getInstance();
+		cals = new Calendar[] { Calendar.getInstance(), Calendar.getInstance(), Calendar.getInstance(),
+				Calendar.getInstance() };
+		time = new Timestamp(System.currentTimeMillis());
+		times = new Timestamp[] { new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis()) };
 
 		for (int i = 0; i < 50; i++) {
 			list1.add(s1);

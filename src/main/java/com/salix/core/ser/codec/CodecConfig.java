@@ -1,7 +1,11 @@
 package com.salix.core.ser.codec;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -16,372 +20,384 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.log4j.Logger;
 
-import com.salix.core.ser.codec.my.BooleanArrayCodec;
-import com.salix.core.ser.codec.my.BooleanCodec;
-import com.salix.core.ser.codec.my.ByteArrayCodec;
-import com.salix.core.ser.codec.my.ByteCodec;
-import com.salix.core.ser.codec.my.CharArrayCodec;
-import com.salix.core.ser.codec.my.CharCodec;
-import com.salix.core.ser.codec.my.CharacterArrayCodec;
-import com.salix.core.ser.codec.my.ClassCodec;
-import com.salix.core.ser.codec.my.DoubleArrayCodec;
-import com.salix.core.ser.codec.my.DoubleCodec;
-import com.salix.core.ser.codec.my.EnumArrayCodec;
-import com.salix.core.ser.codec.my.EnumCodec;
-import com.salix.core.ser.codec.my.ExceptionCodec;
-import com.salix.core.ser.codec.my.FloatArrayCodec;
-import com.salix.core.ser.codec.my.FloatCodec;
-import com.salix.core.ser.codec.my.IntArrayCodec;
-import com.salix.core.ser.codec.my.IntCodec;
-import com.salix.core.ser.codec.my.IntegerArrayCodec;
-import com.salix.core.ser.codec.my.ListCodec;
-import com.salix.core.ser.codec.my.LongArrayCodec;
-import com.salix.core.ser.codec.my.LongCodec;
-import com.salix.core.ser.codec.my.MapCodec;
-import com.salix.core.ser.codec.my.OBooleanArrayCodec;
-import com.salix.core.ser.codec.my.OByteArrayCodec;
-import com.salix.core.ser.codec.my.ODoubleArrayCodec;
-import com.salix.core.ser.codec.my.OFloatArrayCodec;
-import com.salix.core.ser.codec.my.OLongArrayCodec;
-import com.salix.core.ser.codec.my.OShortArrayCodec;
-import com.salix.core.ser.codec.my.ObjectArrayCodec;
-import com.salix.core.ser.codec.my.ObjectCodec;
-import com.salix.core.ser.codec.my.SetCodec;
-import com.salix.core.ser.codec.my.ShortArrayCodec;
-import com.salix.core.ser.codec.my.ShortCodec;
-import com.salix.core.ser.codec.my.StringArrayCodec;
-import com.salix.core.ser.codec.my.StringCodec;
+import com.salix.core.ser.codec.impl.BooleanArrayCodec;
+import com.salix.core.ser.codec.impl.BooleanCodec;
+import com.salix.core.ser.codec.impl.ByteArrayCodec;
+import com.salix.core.ser.codec.impl.ByteCodec;
+import com.salix.core.ser.codec.impl.CalendarArrayCodec;
+import com.salix.core.ser.codec.impl.CalendarCodec;
+import com.salix.core.ser.codec.impl.CharArrayCodec;
+import com.salix.core.ser.codec.impl.CharCodec;
+import com.salix.core.ser.codec.impl.CharacterArrayCodec;
+import com.salix.core.ser.codec.impl.ClassCodec;
+import com.salix.core.ser.codec.impl.DateArrayCodec;
+import com.salix.core.ser.codec.impl.DateCodec;
+import com.salix.core.ser.codec.impl.DoubleArrayCodec;
+import com.salix.core.ser.codec.impl.DoubleCodec;
+import com.salix.core.ser.codec.impl.EnumArrayCodec;
+import com.salix.core.ser.codec.impl.EnumCodec;
+import com.salix.core.ser.codec.impl.ExceptionCodec;
+import com.salix.core.ser.codec.impl.FloatArrayCodec;
+import com.salix.core.ser.codec.impl.FloatCodec;
+import com.salix.core.ser.codec.impl.IntArrayCodec;
+import com.salix.core.ser.codec.impl.IntCodec;
+import com.salix.core.ser.codec.impl.IntegerArrayCodec;
+import com.salix.core.ser.codec.impl.ListCodec;
+import com.salix.core.ser.codec.impl.LongArrayCodec;
+import com.salix.core.ser.codec.impl.LongCodec;
+import com.salix.core.ser.codec.impl.MapCodec;
+import com.salix.core.ser.codec.impl.OBooleanArrayCodec;
+import com.salix.core.ser.codec.impl.OByteArrayCodec;
+import com.salix.core.ser.codec.impl.ODoubleArrayCodec;
+import com.salix.core.ser.codec.impl.OFloatArrayCodec;
+import com.salix.core.ser.codec.impl.OLongArrayCodec;
+import com.salix.core.ser.codec.impl.OShortArrayCodec;
+import com.salix.core.ser.codec.impl.ObjectArrayCodec;
+import com.salix.core.ser.codec.impl.ObjectCodec;
+import com.salix.core.ser.codec.impl.SetCodec;
+import com.salix.core.ser.codec.impl.ShortArrayCodec;
+import com.salix.core.ser.codec.impl.ShortCodec;
+import com.salix.core.ser.codec.impl.SqlDateArrayCodec;
+import com.salix.core.ser.codec.impl.SqlDateCodec;
+import com.salix.core.ser.codec.impl.StringArrayCodec;
+import com.salix.core.ser.codec.impl.StringCodec;
+import com.salix.core.ser.codec.impl.TimestampArrayCodec;
+import com.salix.core.ser.codec.impl.TimestampCodec;
 import com.salix.core.util.ReflectUtil;
 import com.salix.exception.CodecException;
 
 /**
- * 编码类配置文件.
- * 所以编码类都应该在这里进行配置，每一种编码类支持一种类型的编码.
- *
+ * 编码类配置文件. 所以编码类都应该在这里进行配置，每一种编码类支持一种类型的编码.
+ * 
  * @author duanbn
  * @since 1.1
  */
-public class CodecConfig
-{
+public class CodecConfig {
 
-    public static final Logger log = Logger.getLogger(CodecConfig.class);
+	public static final Logger log = Logger.getLogger(CodecConfig.class);
 
-    /**
-     * 通过被序列化类型查找编码类.
-     */
-    public final Map<Class<?>, Codec> classCodecPool = new HashMap<Class<?>, Codec>();
-    /**
-     * 通过被序列化类型查找编码标志位.
-     */
-    public final Map<Class<?>, Byte> classCodecTypePool = new HashMap<Class<?>, Byte>();
-    /**
-     * 通过编码标志位查找编码类.
-     */
-    public final Map<Byte, Codec> codecTypeCodecPool = new HashMap<Byte, Codec>();
-    /**
-     * 通过编码标志位查找被被序列化类型.
-     */
-    public final Map<Byte, Class<?>> codecTypeClassPool = new HashMap<Byte, Class<?>>();
+	/**
+	 * 通过被序列化类型查找编码类.
+	 */
+	public final Map<Class<?>, Codec> classCodecPool = new HashMap<Class<?>, Codec>();
+	/**
+	 * 通过被序列化类型查找编码标志位.
+	 */
+	public final Map<Class<?>, Byte> classCodecTypePool = new HashMap<Class<?>, Byte>();
+	/**
+	 * 通过编码标志位查找编码类.
+	 */
+	public final Map<Byte, Codec> codecTypeCodecPool = new HashMap<Byte, Codec>();
+	/**
+	 * 通过编码标志位查找被被序列化类型.
+	 */
+	public final Map<Byte, Class<?>> codecTypeClassPool = new HashMap<Byte, Class<?>>();
 
-    public final ConfigItem[] config = new ConfigItem[] {
+	public final ConfigItem[] config = new ConfigItem[] {
 
-        new ConfigItem(Throwable.class, CodecType.TYPE_EXCEPTION, new ExceptionCodec()),
-        new ConfigItem(Class.class, CodecType.TYPE_CLASS, new ClassCodec()),
+	new ConfigItem(Throwable.class, CodecType.TYPE_EXCEPTION, new ExceptionCodec()),
+			new ConfigItem(Class.class, CodecType.TYPE_CLASS, new ClassCodec()),
 
-        new ConfigItem(Boolean.TYPE, CodecType.TYPE_BOOLEAN, new BooleanCodec()),
-        new ConfigItem(Boolean.class, CodecType.TYPE_OBOOLEAN, new BooleanCodec()),
-        new ConfigItem(boolean[].class, CodecType.TYPE_ARRAY_BOOLEAN, new BooleanArrayCodec()),
-        new ConfigItem(Boolean[].class, CodecType.TYPE_ARRAY_OBOOLEAN, new OBooleanArrayCodec()),
+			new ConfigItem(Boolean.TYPE, CodecType.TYPE_BOOLEAN, new BooleanCodec()),
+			new ConfigItem(Boolean.class, CodecType.TYPE_OBOOLEAN, new BooleanCodec()),
+			new ConfigItem(boolean[].class, CodecType.TYPE_ARRAY_BOOLEAN, new BooleanArrayCodec()),
+			new ConfigItem(Boolean[].class, CodecType.TYPE_ARRAY_OBOOLEAN, new OBooleanArrayCodec()),
 
-        new ConfigItem(Byte.TYPE, CodecType.TYPE_BYTE, new ByteCodec()),
-        new ConfigItem(Byte.class, CodecType.TYPE_OBYTE, new ByteCodec()),
-        new ConfigItem(byte[].class, CodecType.TYPE_ARRAY_BYTE, new ByteArrayCodec()),
-        new ConfigItem(Byte[].class, CodecType.TYPE_ARRAY_OBYTE, new OByteArrayCodec()),
+			new ConfigItem(Byte.TYPE, CodecType.TYPE_BYTE, new ByteCodec()),
+			new ConfigItem(Byte.class, CodecType.TYPE_OBYTE, new ByteCodec()),
+			new ConfigItem(byte[].class, CodecType.TYPE_ARRAY_BYTE, new ByteArrayCodec()),
+			new ConfigItem(Byte[].class, CodecType.TYPE_ARRAY_OBYTE, new OByteArrayCodec()),
 
-        new ConfigItem(Character.TYPE, CodecType.TYPE_CHAR, new CharCodec()),
-        new ConfigItem(Character.class, CodecType.TYPE_OCHAR, new CharCodec()),
-        new ConfigItem(char[].class, CodecType.TYPE_ARRAY_CHAR, new CharArrayCodec()),
-        new ConfigItem(Character[].class, CodecType.TYPE_ARRAY_OCHAR, new CharacterArrayCodec()),
+			new ConfigItem(Character.TYPE, CodecType.TYPE_CHAR, new CharCodec()),
+			new ConfigItem(Character.class, CodecType.TYPE_OCHAR, new CharCodec()),
+			new ConfigItem(char[].class, CodecType.TYPE_ARRAY_CHAR, new CharArrayCodec()),
+			new ConfigItem(Character[].class, CodecType.TYPE_ARRAY_OCHAR, new CharacterArrayCodec()),
 
-        new ConfigItem(Short.TYPE, CodecType.TYPE_SHORT, new ShortCodec()),
-        new ConfigItem(Short.class, CodecType.TYPE_OSHORT, new ShortCodec()),
-        new ConfigItem(short[].class, CodecType.TYPE_ARRAY_SHORT, new ShortArrayCodec()),
-        new ConfigItem(Short[].class, CodecType.TYPE_ARRAY_OSHORT, new OShortArrayCodec()),
+			new ConfigItem(Short.TYPE, CodecType.TYPE_SHORT, new ShortCodec()),
+			new ConfigItem(Short.class, CodecType.TYPE_OSHORT, new ShortCodec()),
+			new ConfigItem(short[].class, CodecType.TYPE_ARRAY_SHORT, new ShortArrayCodec()),
+			new ConfigItem(Short[].class, CodecType.TYPE_ARRAY_OSHORT, new OShortArrayCodec()),
 
-        new ConfigItem(Integer.TYPE, CodecType.TYPE_INT, new IntCodec()),
-        new ConfigItem(Integer.class, CodecType.TYPE_OINT, new IntCodec()),
-        new ConfigItem(int[].class, CodecType.TYPE_ARRAY_INT, new IntArrayCodec()),
-        new ConfigItem(Integer[].class, CodecType.TYPE_ARRAY_OINT, new IntegerArrayCodec()),
+			new ConfigItem(Integer.TYPE, CodecType.TYPE_INT, new IntCodec()),
+			new ConfigItem(Integer.class, CodecType.TYPE_OINT, new IntCodec()),
+			new ConfigItem(int[].class, CodecType.TYPE_ARRAY_INT, new IntArrayCodec()),
+			new ConfigItem(Integer[].class, CodecType.TYPE_ARRAY_OINT, new IntegerArrayCodec()),
 
-        new ConfigItem(Long.TYPE, CodecType.TYPE_LONG, new LongCodec()),
-        new ConfigItem(Long.class, CodecType.TYPE_OLONG, new LongCodec()),
-        new ConfigItem(long[].class, CodecType.TYPE_ARRAY_LONG, new LongArrayCodec()),
-        new ConfigItem(Long[].class, CodecType.TYPE_ARRAY_OLONG, new OLongArrayCodec()),
+			new ConfigItem(Long.TYPE, CodecType.TYPE_LONG, new LongCodec()),
+			new ConfigItem(Long.class, CodecType.TYPE_OLONG, new LongCodec()),
+			new ConfigItem(long[].class, CodecType.TYPE_ARRAY_LONG, new LongArrayCodec()),
+			new ConfigItem(Long[].class, CodecType.TYPE_ARRAY_OLONG, new OLongArrayCodec()),
 
-        new ConfigItem(Float.TYPE, CodecType.TYPE_FLOAT, new FloatCodec()),
-        new ConfigItem(Float.class, CodecType.TYPE_OFLOAT, new FloatCodec()),
-        new ConfigItem(float[].class, CodecType.TYPE_ARRAY_FLOAT, new FloatArrayCodec()),
-        new ConfigItem(Float[].class, CodecType.TYPE_ARRAY_OFLOAT, new OFloatArrayCodec()),
+			new ConfigItem(Float.TYPE, CodecType.TYPE_FLOAT, new FloatCodec()),
+			new ConfigItem(Float.class, CodecType.TYPE_OFLOAT, new FloatCodec()),
+			new ConfigItem(float[].class, CodecType.TYPE_ARRAY_FLOAT, new FloatArrayCodec()),
+			new ConfigItem(Float[].class, CodecType.TYPE_ARRAY_OFLOAT, new OFloatArrayCodec()),
 
-        new ConfigItem(Double.TYPE, CodecType.TYPE_DOUBLE, new DoubleCodec()),
-        new ConfigItem(Double.class, CodecType.TYPE_ODOUBLE, new DoubleCodec()),
-        new ConfigItem(double[].class, CodecType.TYPE_ARRAY_DOUBLE, new DoubleArrayCodec()),
-        new ConfigItem(Double[].class, CodecType.TYPE_ARRAY_ODOUBLE, new ODoubleArrayCodec()),
+			new ConfigItem(Double.TYPE, CodecType.TYPE_DOUBLE, new DoubleCodec()),
+			new ConfigItem(Double.class, CodecType.TYPE_ODOUBLE, new DoubleCodec()),
+			new ConfigItem(double[].class, CodecType.TYPE_ARRAY_DOUBLE, new DoubleArrayCodec()),
+			new ConfigItem(Double[].class, CodecType.TYPE_ARRAY_ODOUBLE, new ODoubleArrayCodec()),
 
-        new ConfigItem(String.class, CodecType.TYPE_STRING, new StringCodec()),
-        new ConfigItem(String[].class, CodecType.TYPE_ARRAY_STRING, new StringArrayCodec()),
+			new ConfigItem(String.class, CodecType.TYPE_STRING, new StringCodec()),
+			new ConfigItem(String[].class, CodecType.TYPE_ARRAY_STRING, new StringArrayCodec()),
 
-        new ConfigItem(Object.class, CodecType.TYPE_OBJECT, new ObjectCodec()),
-        new ConfigItem(Object[].class, CodecType.TYPE_ARRAY_OBJECT, new ObjectArrayCodec()),
+			new ConfigItem(Object.class, CodecType.TYPE_OBJECT, new ObjectCodec()),
+			new ConfigItem(Object[].class, CodecType.TYPE_ARRAY_OBJECT, new ObjectArrayCodec()),
 
-        new ConfigItem(Enum.class, CodecType.TYPE_ENUM, new EnumCodec()),
-        new ConfigItem(Enum[].class, CodecType.TYPE_ARRAY_ENUM, new EnumArrayCodec()),
+			new ConfigItem(Enum.class, CodecType.TYPE_ENUM, new EnumCodec()),
+			new ConfigItem(Enum[].class, CodecType.TYPE_ARRAY_ENUM, new EnumArrayCodec()),
 
-        new ConfigItem(List.class, CodecType.TYPE_LIST, new ListCodec()),
-        new ConfigItem(ArrayList.class, CodecType.TYPE_ARRAYLIST, new ListCodec()),
-        new ConfigItem(LinkedList.class, CodecType.TYPE_LINKEDLIST, new ListCodec()),
-        new ConfigItem(CopyOnWriteArrayList.class, CodecType.TYPE_COPYONWRITEARRAYLIST, new ListCodec()),
+			new ConfigItem(List.class, CodecType.TYPE_LIST, new ListCodec()),
+			new ConfigItem(ArrayList.class, CodecType.TYPE_ARRAYLIST, new ListCodec()),
+			new ConfigItem(LinkedList.class, CodecType.TYPE_LINKEDLIST, new ListCodec()),
+			new ConfigItem(CopyOnWriteArrayList.class, CodecType.TYPE_COPYONWRITEARRAYLIST, new ListCodec()),
 
-        new ConfigItem(Set.class, CodecType.TYPE_SET, new SetCodec()),
-        new ConfigItem(HashSet.class, CodecType.TYPE_HASHSET, new SetCodec()),
-        new ConfigItem(TreeSet.class, CodecType.TYPE_TREESET, new SetCodec()),
-        new ConfigItem(LinkedHashSet.class, CodecType.TYPE_LINKEDHASHSET, new SetCodec()),
+			new ConfigItem(Set.class, CodecType.TYPE_SET, new SetCodec()),
+			new ConfigItem(HashSet.class, CodecType.TYPE_HASHSET, new SetCodec()),
+			new ConfigItem(TreeSet.class, CodecType.TYPE_TREESET, new SetCodec()),
+			new ConfigItem(LinkedHashSet.class, CodecType.TYPE_LINKEDHASHSET, new SetCodec()),
 
-        new ConfigItem(Map.class, CodecType.TYPE_MAP, new MapCodec()),
-        new ConfigItem(HashMap.class, CodecType.TYPE_HASHMAP, new MapCodec()),
-        new ConfigItem(ConcurrentHashMap.class, CodecType.TYPE_CONCURRENTHASHMAP, new MapCodec()),
-        new ConfigItem(LinkedHashMap.class, CodecType.TYPE_LINKEDHASHMAP, new MapCodec())
-    };
+			new ConfigItem(Map.class, CodecType.TYPE_MAP, new MapCodec()),
+			new ConfigItem(HashMap.class, CodecType.TYPE_HASHMAP, new MapCodec()),
+			new ConfigItem(ConcurrentHashMap.class, CodecType.TYPE_CONCURRENTHASHMAP, new MapCodec()),
+			new ConfigItem(LinkedHashMap.class, CodecType.TYPE_LINKEDHASHMAP, new MapCodec()),
 
-    private CodecConfig()
-    {
-        _loadClassCodec();
-        _loadClassCodecType();
-        _loadCodecTypeCodec();
-        _loadCodecTypeClass();
-    }
+			new ConfigItem(Date.class, CodecType.TYPE_DATE, new DateCodec()),
+			new ConfigItem(Date[].class, CodecType.TYPE_ARRAY_DATE, new DateArrayCodec()),
+			new ConfigItem(java.sql.Date.class, CodecType.TYPE_SQLDATE, new SqlDateCodec()),
+			new ConfigItem(java.sql.Date[].class, CodecType.TYPE_ARRAY_SQLDATE, new SqlDateArrayCodec()),
 
-    private static CodecConfig instance;
+			new ConfigItem(Calendar.class, CodecType.TYPE_CALENDER, new CalendarCodec()),
+			new ConfigItem(Calendar[].class, CodecType.TYPE_ARRAY_CALENDER, new CalendarArrayCodec()),
+			new ConfigItem(GregorianCalendar.class, CodecType.TYPE_CALENDER, new CalendarCodec()),
+			new ConfigItem(GregorianCalendar[].class, CodecType.TYPE_ARRAY_CALENDER, new CalendarArrayCodec()),
 
-    public static CodecConfig load()
-    {
-        if (instance == null) {
-            synchronized (CodecConfig.class) {
-                if (instance == null) {
-                    instance = new CodecConfig();
-                }
-            }
-        }
+			new ConfigItem(Timestamp.class, CodecType.TYPE_TIMESTAMP, new TimestampCodec()),
+			new ConfigItem(Timestamp[].class, CodecType.TYPE_ARRAY_TIMESTAMP, new TimestampArrayCodec()) };
 
-        return instance;
-    }
+	private CodecConfig() {
+		_loadClassCodec();
+		_loadClassCodecType();
+		_loadCodecTypeCodec();
+		_loadCodecTypeClass();
+	}
 
-    /**
-     * 根据对象查找相关的Codec.
-     *
-     * @param obj 被序列化的对象.
-     * @return 相关的Codec
-     * @throws CodecException 此对象不能被序列化
-     */
-    public Codec lookup(Object obj) throws CodecException
-    {
-        if (obj == null) {
-            return classCodecPool.get(Object.class);
-        }
+	private static CodecConfig instance;
 
-        // 判断是否是异常类型.
-        if (obj instanceof Throwable) {
-            return classCodecPool.get(Throwable.class);
-        }
+	public static CodecConfig load() {
+		if (instance == null) {
+			synchronized (CodecConfig.class) {
+				if (instance == null) {
+					instance = new CodecConfig();
+				}
+			}
+		}
 
-        Class<?> clazz = obj.getClass();
-        // 判断是否是基本类型, 如果是就从基本类型中找到Codec
-        Codec codec = classCodecPool.get(clazz);
-        if (codec != null)
-            return codec;
+		return instance;
+	}
 
-        // 如果是枚举则使用枚举的序列化
-        if (clazz.isEnum()) {
-            return classCodecPool.get(Enum.class);
-        }
+	/**
+	 * 根据对象查找相关的Codec.
+	 * 
+	 * @param obj
+	 *            被序列化的对象.
+	 * @return 相关的Codec
+	 * @throws CodecException
+	 *             此对象不能被序列化
+	 */
+	public Codec lookup(Object obj) throws CodecException {
+		if (obj == null) {
+			return classCodecPool.get(Object.class);
+		}
 
-        // 如果是数组则判断是对象的数组还是枚举的数组
-        if (clazz.isArray()) {
-            if (clazz.getComponentType().isEnum()) {
-                return classCodecPool.get(Enum[].class);
-            } else {
-                return classCodecPool.get(Object[].class);
-            }
-        }
+		// 判断是否是异常类型.
+		if (obj instanceof Throwable) {
+			return classCodecPool.get(Throwable.class);
+		}
 
-        _checkCodecable(clazz);
-        return classCodecPool.get(Object.class);
-    }
+		Class<?> clazz = obj.getClass();
+		// 判断是否是基本类型, 如果是就从基本类型中找到Codec
+		Codec codec = classCodecPool.get(clazz);
+		if (codec != null)
+			return codec;
 
-    /**
-     * 根据序列化类型查找相关的Codec.
-     *
-     * @param type 序列化类型
-     * @return 相关的Codec
-     * @throws CodecException 没有找到相关的Codec
-     */
-    public Codec lookup(byte type) throws CodecException
-    {
-        Codec codec = codecTypeCodecPool.get(type);
+		// 如果是枚举则使用枚举的序列化
+		if (clazz.isEnum()) {
+			return classCodecPool.get(Enum.class);
+		}
 
-        if (codec != null) {
-            return codec;
-        }
+		// 如果是数组则判断是对象的数组还是枚举的数组
+		if (clazz.isArray()) {
+			if (clazz.getComponentType().isEnum()) {
+				return classCodecPool.get(Enum[].class);
+			} else {
+				return classCodecPool.get(Object[].class);
+			}
+		}
 
-        throw new CodecException("找不到相关的codec(type:" + type + ")");
-    }
+		_checkCodecable(clazz);
+		return classCodecPool.get(Object.class);
+	}
 
-    /**
-     * 获取CodecType.
-     *
-     * @param obj 根据这个对象获取类型.
-     * @return 编码类型
-     * @throws 获取编码类型失败
-     */
-    public byte getCodecType(Object obj) throws CodecException
-    {
-        if (obj == null) {
-            return classCodecTypePool.get(Object.class);
-        }
+	/**
+	 * 根据序列化类型查找相关的Codec.
+	 * 
+	 * @param type
+	 *            序列化类型
+	 * @return 相关的Codec
+	 * @throws CodecException
+	 *             没有找到相关的Codec
+	 */
+	public Codec lookup(byte type) throws CodecException {
+		Codec codec = codecTypeCodecPool.get(type);
 
-        Class<?> clazz = obj.getClass();
-        if (clazz.isEnum()) {
-            return classCodecTypePool.get(Enum.class);
-        }
+		if (codec != null) {
+			return codec;
+		}
 
-        Byte type = classCodecTypePool.get(clazz);
-        if (type != null) {
-            return type;
-        }
+		throw new CodecException("找不到相关的codec(type:" + type + ")");
+	}
 
-        if (clazz.isArray()) {
-            if (clazz.getComponentType().isEnum()) {
-                return classCodecTypePool.get(Enum[].class);
-            } else {
-                return classCodecTypePool.get(Object[].class);
-            }
-        }
+	/**
+	 * 获取CodecType.
+	 * 
+	 * @param obj
+	 *            根据这个对象获取类型.
+	 * @return 编码类型
+	 * @throws 获取编码类型失败
+	 */
+	public byte getCodecType(Object obj) throws CodecException {
+		if (obj == null) {
+			return classCodecTypePool.get(Object.class);
+		}
 
-        _checkCodecable(clazz);
-        return classCodecTypePool.get(Object.class);
-    }
+		Class<?> clazz = obj.getClass();
+		if (clazz.isEnum()) {
+			return classCodecTypePool.get(Enum.class);
+		}
 
-    /**
-     * 根据序列化类型查找被序列化对象的class
-     *
-     * @param type 序列化类型
-     * @return 被序列化对象的class
-     * @throws CodecException 没有找到class
-     */
-    public Class<?> getClassByType(byte type) throws CodecException
-    {
-        Class<?> clazz = null;
-        clazz = codecTypeClassPool.get(type);
-        if (clazz != null) {
-            return clazz;
-        }
+		Byte type = classCodecTypePool.get(clazz);
+		if (type != null) {
+			return type;
+		}
 
-        throw new CodecException("不能识别的类型(type:" + type + ")");
-    }
+		if (clazz.isArray()) {
+			if (clazz.getComponentType().isEnum()) {
+				return classCodecTypePool.get(Enum[].class);
+			} else {
+				return classCodecTypePool.get(Object[].class);
+			}
+		}
 
-    /**
-     * 加载Class : Codec的映射关系
-     */
-    private void _loadClassCodec()
-    {
-        for (ConfigItem item : config) {
-            classCodecPool.put(item.clazz, item.codec);
-        }
-    }
+		_checkCodecable(clazz);
+		return classCodecTypePool.get(Object.class);
+	}
 
-    /**
-     * 加载Class : CodecType的映射关系
-     */
-    private void _loadClassCodecType()
-    {
-        for (ConfigItem item : config) {
-            classCodecTypePool.put(item.clazz, item.ct);
-        }
-    }
+	/**
+	 * 根据序列化类型查找被序列化对象的class
+	 * 
+	 * @param type
+	 *            序列化类型
+	 * @return 被序列化对象的class
+	 * @throws CodecException
+	 *             没有找到class
+	 */
+	public Class<?> getClassByType(byte type) throws CodecException {
+		Class<?> clazz = null;
+		clazz = codecTypeClassPool.get(type);
+		if (clazz != null) {
+			return clazz;
+		}
 
-    /**
-     * 加载CodecType : Codec的映射关系
-     */
-    private void _loadCodecTypeCodec()
-    {
-        for (ConfigItem item : config) {
-            if (item.codec != null) {
-                codecTypeCodecPool.put(item.ct, item.codec);
-                if (log.isDebugEnabled()) {
-                    log.debug("load " + item.ct + ":" + item.codec);
-                }
-            }
-        }
-    }
+		throw new CodecException("不能识别的类型(type:" + type + ")");
+	}
 
-    /**
-     * 加载CodecType : Class的映射关系.
-     */
-    private void _loadCodecTypeClass()
-    {
-        for (ConfigItem item : config) {
-            codecTypeClassPool.put(item.ct, item.clazz);
-        }
-    }
+	/**
+	 * 加载Class : Codec的映射关系
+	 */
+	private void _loadClassCodec() {
+		for (ConfigItem item : config) {
+			classCodecPool.put(item.clazz, item.codec);
+		}
+	}
 
-    /**
-     * 判断对象是否能够被序列化
-     */
-    private void _checkCodecable(Class<?> c) throws CodecException
-    {
-        // 如果是枚举类型则是可以被序列化的
-        if (c.isEnum()) {
-            return;
-        }
+	/**
+	 * 加载Class : CodecType的映射关系
+	 */
+	private void _loadClassCodecType() {
+		for (ConfigItem item : config) {
+			classCodecTypePool.put(item.clazz, item.ct);
+		}
+	}
 
-        if (c == Class.class) {
-            return;
-        }
+	/**
+	 * 加载CodecType : Codec的映射关系
+	 */
+	private void _loadCodecTypeCodec() {
+		for (ConfigItem item : config) {
+			if (item.codec != null) {
+				codecTypeCodecPool.put(item.ct, item.codec);
+				if (log.isDebugEnabled()) {
+					log.debug("load " + item.ct + ":" + item.codec);
+				}
+			}
+		}
+	}
 
-        // 判断对象是否实现Codecable接口
-        Class<?>[] interfaces = ReflectUtil.getInterfaces(c);
-        for (Class<?> interf : interfaces) {
-            if (interf == Serializable.class) {
-                return;
-            }
-        }
+	/**
+	 * 加载CodecType : Class的映射关系.
+	 */
+	private void _loadCodecTypeClass() {
+		for (ConfigItem item : config) {
+			codecTypeClassPool.put(item.ct, item.clazz);
+		}
+	}
 
-        throw new CodecException("被序列化的对象(" + c + ")是不被支持的序列化类型也没有实现Codecable接口，序列化失败");
-    }
+	/**
+	 * 判断对象是否能够被序列化
+	 */
+	private void _checkCodecable(Class<?> c) throws CodecException {
+		// 如果是枚举类型则是可以被序列化的
+		if (c.isEnum()) {
+			return;
+		}
 
-    /**
-     * 配置项.
-     */
-    class ConfigItem
-    {
-        /**
-         * 被序列化类型.
-         */
-        public Class<?> clazz;
-        /**
-         * 编码标志位.
-         */
-        public byte ct;
-        /**
-         * 编码类.
-         */
-        public Codec codec;
+		if (c == Class.class) {
+			return;
+		}
 
-        public ConfigItem(Class<?> clazz, byte ct, Codec codec)
-        {
-            this.clazz = clazz;
-            this.ct = ct;
-            this.codec = codec;
-        }
-    }
+		// 判断对象是否实现Codecable接口
+		Class<?>[] interfaces = ReflectUtil.getInterfaces(c);
+		for (Class<?> interf : interfaces) {
+			if (interf == Serializable.class) {
+				return;
+			}
+		}
+
+		throw new CodecException("被序列化的对象(" + c + ")是不被支持的序列化类型也没有实现Serializable接口，序列化失败");
+	}
+
+	/**
+	 * 配置项.
+	 */
+	class ConfigItem {
+		/**
+		 * 被序列化类型.
+		 */
+		public Class<?> clazz;
+		/**
+		 * 编码标志位.
+		 */
+		public byte ct;
+		/**
+		 * 编码类.
+		 */
+		public Codec codec;
+
+		public ConfigItem(Class<?> clazz, byte ct, Codec codec) {
+			this.clazz = clazz;
+			this.ct = ct;
+			this.codec = codec;
+		}
+	}
 }

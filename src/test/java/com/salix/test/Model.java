@@ -1,7 +1,10 @@
 package com.salix.test;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -98,11 +101,20 @@ public class Model extends BaseTest implements Serializable {
 	public String s7;
 	public String s8;
 
+	public Date date;
+	public Date[] dates;
+	public java.sql.Date sqlDate;
+	public java.sql.Date[] sqlDates;
+	public Calendar cal;
+	public Calendar[] cals;
+	public Timestamp time;
+	public Timestamp[] times;
+
 	public SubModel sm;
 	public SubModel[] sms;
 
 	public List<String> list1 = new ArrayList<String>();
-	public List nlist;
+	public List<?> nlist;
 	public List<SubModel> list2 = new ArrayList<SubModel>();
 
 	public Set<SubModel> set1 = new HashSet<SubModel>();
@@ -155,11 +167,25 @@ public class Model extends BaseTest implements Serializable {
 		s = "alkjdflkjdsfkjdskfjsldkjflkdsjf";
 		ss = new String[] { "alkjdflkjdsfkjdskfjsldkjflkdsjf", "alkjdflkjdsfkjdskfjsldkjflkdsjf" };
 
-		/*
-		 * s1 = genWord(50); s2 = genWord(10); s3 = genWord(50); s4 =
-		 * genWord(100); s5 = genWord(50); s6 = genWord(500); s7 = genWord(30);
-		 * s8 = genWord(20);
-		 */
+		s1 = genWord(50);
+		s2 = genWord(10);
+		s3 = genWord(50);
+		s4 = genWord(100);
+		s5 = genWord(50);
+		s6 = genWord(500);
+		s7 = genWord(30);
+		s8 = genWord(20);
+
+		date = new Date();
+		dates = new Date[] { new Date(), new Date(), new Date() };
+		sqlDate = new java.sql.Date(System.currentTimeMillis());
+		sqlDates = new java.sql.Date[] { new java.sql.Date(System.currentTimeMillis()),
+				new java.sql.Date(System.currentTimeMillis()) };
+		cal = Calendar.getInstance();
+		cals = new Calendar[] { Calendar.getInstance(), Calendar.getInstance(), Calendar.getInstance(),
+				Calendar.getInstance() };
+		time = new Timestamp(System.currentTimeMillis());
+		times = new Timestamp[] { new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis()) };
 
 		sm = new SubModel();
 		sms = new SubModel[] { new SubModel(), null, new SubModel(), null };
