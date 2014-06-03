@@ -2,8 +2,6 @@ package com.salix.server;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -19,6 +17,7 @@ import com.salix.core.ser.MyDeserializer;
 import com.salix.core.ser.MySerializer;
 import com.salix.core.ser.SerializeException;
 import com.salix.core.ser.Serializer;
+import com.salix.core.util.ThreadPool;
 import com.salix.exception.ServerInternalException;
 import com.salix.server.processor.IProcessor;
 
@@ -30,7 +29,8 @@ public class DispatchHandler extends IoHandlerAdapter {
 
 	private static final BlockingQueue<Task> messageQ = new LinkedBlockingQueue<Task>();
 	private static int threadNum = Runtime.getRuntime().availableProcessors() * 2;
-	private static final ExecutorService threadPool = Executors.newFixedThreadPool(threadNum);
+	private static final ThreadPool threadPool = ThreadPool.newInstance("salix-main-threadpool", threadNum,
+			threadNum * 5, 1000 * 5);
 
 	private Serializer ser;
 	private Deserializer deser;

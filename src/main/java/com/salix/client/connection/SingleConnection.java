@@ -1,12 +1,6 @@
 package com.salix.client.connection;
 
 import java.io.IOException;
-import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-
-import com.salix.core.message.*;
-import com.salix.core.ser.*;
 
 import org.apache.log4j.Logger;
 

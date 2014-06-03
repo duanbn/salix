@@ -7,7 +7,7 @@ public class ThreadPool {
 
     private ThreadPoolExecutor pool = null;
 
-    private static final int QUEUE_SIZE = 10000;
+    private static final int QUEUE_SIZE = 50000;
 
     private ThreadPool(String poolName, int minThread, int maxThread, long waitTime) {
         pool = new ThreadPoolExecutor(minThread, maxThread, waitTime, TimeUnit.MILLISECONDS,

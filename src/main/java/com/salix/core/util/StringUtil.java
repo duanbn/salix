@@ -1,9 +1,5 @@
 package com.salix.core.util;
 
-import java.lang.reflect.Method;
-import java.util.Random;
-import java.util.Set;
-import java.util.HashSet;
 
 /**
  * 和字符串相关的工具类.
