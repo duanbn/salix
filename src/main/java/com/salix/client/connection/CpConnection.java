@@ -1,6 +1,7 @@
 package com.salix.client.connection;
 
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 
@@ -20,6 +21,8 @@ public class CpConnection extends AbstractConnection {
 	 */
 	private boolean active;
 
+	private Semaphore se;
+
 	public CpConnection(String host, int port) throws IOException {
 		super(host, port);
 	}
@@ -27,8 +30,9 @@ public class CpConnection extends AbstractConnection {
 	/**
 	 * 将此连接设置为活动. 表示此连接正在被使用
 	 */
-	public void setActive() {
+	public void setActive(Semaphore se) {
 		this.active = true;
+		this.se = se;
 	}
 
 	/**
@@ -61,6 +65,7 @@ public class CpConnection extends AbstractConnection {
 	 */
 	public void close() {
 		this.active = false;
+		this.se.release();
 	}
 
 	/**

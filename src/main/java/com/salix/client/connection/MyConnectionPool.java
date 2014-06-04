@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 
@@ -19,11 +20,15 @@ public class MyConnectionPool extends AbstractLifecycle implements ConnectionPoo
 	public static final Logger log = Logger.getLogger(MyConnectionPool.class);
 
 	public static final int DEFAULT_MIN_CONNECT_NUM = 1;
-	public static final int DEFAULT_MAX_CONNECT_NUM = 10;
+	public static final int DEFAULT_MAX_CONNECT_NUM = 20;
 	private int minConnectNum = DEFAULT_MIN_CONNECT_NUM;
 	private int maxConnectNum = DEFAULT_MAX_CONNECT_NUM;
 
+	private int cleanPeriod = 10 * 1000;
+
 	private List<CpConnection> pool;
+
+	private static Semaphore se;
 
 	private String host;
 	private int port;
@@ -42,6 +47,8 @@ public class MyConnectionPool extends AbstractLifecycle implements ConnectionPoo
 
 	@Override
 	public void doInit() {
+		se = new Semaphore(maxConnectNum, true);
+
 		try {
 			CpConnection conn = null;
 			while (pool.size() < minConnectNum) {
@@ -69,7 +76,8 @@ public class MyConnectionPool extends AbstractLifecycle implements ConnectionPoo
 		while (retry-- > 0) {
 			try {
 				CpConnection conn = new CpConnection(this.host, this.port);
-				log.info("创建新的连接成功 active=" + conn.isActive());
+				if (log.isDebugEnabled())
+					log.debug("创建新的连接");
 				return conn;
 			} catch (IOException e) {
 				try {
@@ -112,28 +120,35 @@ public class MyConnectionPool extends AbstractLifecycle implements ConnectionPoo
 		}
 
 		synchronized (pool) {
+			try {
+				se.acquire();
+			} catch (InterruptedException e1) {
+				throw new RuntimeException(e1);
+			}
+
 			CpConnection conn = null;
 			// 遍历连接池找到可用的连接.
 			for (CpConnection c : pool) {
 				if (c.isOpen() && !c.isActive()) {
-					c.setActive();
-					conn = c;
-					break;
+					c.setActive(se);
+					return c;
 				}
 			}
 
 			// 当连接池中都不可用时并且没有达到最大连接数则创建新的连接.
 			try {
-				if (conn == null && pool.size() < maxConnectNum) {
+				if (pool.size() < maxConnectNum) {
 					conn = createConnection();
-					conn.setActive();
+					conn.setActive(se);
 					pool.add(conn);
+					return conn;
 				}
 			} catch (IOException e) {
-				log.error(e);
+				throw new RuntimeException(e);
 			}
-			return conn;
 		}
+
+		throw new RuntimeException("获取连接失败");
 	}
 
 	@Override
@@ -190,7 +205,7 @@ public class MyConnectionPool extends AbstractLifecycle implements ConnectionPoo
 						}
 					}
 
-					Thread.sleep(1000 * 60);
+					Thread.sleep(cleanPeriod);
 				} catch (Exception e) {
 					isRun = false;
 					if (log.isDebugEnabled()) {

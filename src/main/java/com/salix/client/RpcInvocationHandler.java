@@ -35,9 +35,6 @@ public class RpcInvocationHandler implements InvocationHandler {
 
 		// 从连接池中获取一个连接
 		Connection conn = cpool.getConnection();
-		if (conn == null) {
-			throw new RuntimeException("获取连接失败.");
-		}
 
 		Object returnVal = null;
 		try {
