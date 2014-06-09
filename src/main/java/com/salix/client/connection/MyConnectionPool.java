@@ -24,7 +24,7 @@ public class MyConnectionPool extends AbstractLifecycle implements ConnectionPoo
 	private int minConnectNum = DEFAULT_MIN_CONNECT_NUM;
 	private int maxConnectNum = DEFAULT_MAX_CONNECT_NUM;
 
-	private int cleanPeriod = 10 * 1000;
+	private int cleanPeriod = 20 * 1000;
 
 	private List<CpConnection> pool;
 

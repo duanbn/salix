@@ -122,6 +122,8 @@ public class Model extends BaseTest implements Serializable {
 	public Set<SubModel> set3 = new LinkedHashSet<SubModel>();
 
 	public Map<SubModel, SubModel> map = new HashMap<SubModel, SubModel>();
+	public Map<String, Object> map1 = new HashMap<String, Object>();
+	public Map map3 = new HashMap();
 
 	public Model() {
 		bool = true;
@@ -203,6 +205,8 @@ public class Model extends BaseTest implements Serializable {
 		set3.add(new SubModel());
 
 		map.put(new SubModel(), new SubModel());
+		map1.put("test server", new SubModel());
+		map3.put(new SubModel(), new SubModel());
 	}
 
 	public String toString() {

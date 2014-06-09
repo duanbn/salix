@@ -5,7 +5,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SubModel extends BaseTest implements Serializable, Comparable<SubModel> {
 
@@ -81,6 +83,8 @@ public class SubModel extends BaseTest implements Serializable, Comparable<SubMo
 
 	public List<String> list;
 	public List<String> list1 = new ArrayList<String>();
+
+	public Map<String, Object> map = new HashMap<String, Object>();
 
 	public SubModel() {
 		s1 = genWord(100);
