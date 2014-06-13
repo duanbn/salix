@@ -21,7 +21,6 @@ public class Shutdown {
 
 		Shutdown sd = new Shutdown("localhost", Integer.parseInt(args[0]));
 		sd.doShutdown();
-
 	}
 
 	public void doShutdown() throws IOException {
