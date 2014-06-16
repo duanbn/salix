@@ -11,12 +11,14 @@ import java.util.TreeSet;
 
 import org.junit.Test;
 
+import com.salix.core.message.RpcMessage;
 import com.salix.core.ser.DeserializeException;
 import com.salix.core.ser.Deserializer;
 import com.salix.core.ser.MyDeserializer;
 import com.salix.core.ser.MySerializer;
 import com.salix.core.ser.SerializeException;
 import com.salix.core.ser.Serializer;
+import com.salix.server.RpcProtocolEncoder;
 import com.salix.test.BaseTest;
 import com.salix.test.Model;
 import com.salix.test.SubModel;
@@ -136,6 +138,20 @@ public class SerializerTest extends BaseTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Test
+	public void testRpcMessage() throws Exception {
+		RpcMessage msg = new RpcMessage();
+		msg.setArgs(2000);
+		msg.setBody(null);
+		msg.setMethodName("next");
+		msg.setParamTypes(new Class<?>[] { Integer.TYPE });
+		msg.setServiceName("service_name");
+
+		byte[] b = ser.ser(msg);
+		msg = (RpcMessage) deser.deser(b);
+		System.out.println(msg);
 	}
 
 	@Test

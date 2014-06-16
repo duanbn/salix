@@ -50,6 +50,9 @@ public class ObjectCodec implements Codec<Object>
                     output.writeByte(CodecType.TYPE_BYTE);
                     output.writeByte(f.getByte(v));
                     continue;
+                } else if (f.getType() == Character.TYPE) {
+                    output.writeByte(CodecType.TYPE_CHAR);
+                    output.writeChar(f.getChar(v));
                 } else if (f.getType() == Short.TYPE) {
                     output.writeByte(CodecType.TYPE_SHORT);
                     output.writeShort(f.getShort(v));
@@ -113,6 +116,9 @@ public class ObjectCodec implements Codec<Object>
                     continue;
                 } else if (type == CodecType.TYPE_BYTE) {
                     f.setByte(instance, input.readByte());
+                    continue;
+                } else if (type == CodecType.TYPE_CHAR) {
+                    f.setChar(instance, input.readChar());
                     continue;
                 } else if (type == CodecType.TYPE_INT) {
                     f.setInt(instance, input.readInt());

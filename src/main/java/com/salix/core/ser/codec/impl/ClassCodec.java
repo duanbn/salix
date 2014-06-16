@@ -30,7 +30,26 @@ public class ClassCodec implements Codec<Class>
         }
         try {
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            Class c = loader.loadClass(input.readUTF8());
+            String className = input.readUTF8();
+            if (Boolean.TYPE.getName().equals(className)) {
+                return Boolean.TYPE;
+            } else if (Byte.TYPE.getName().equals(className)) {
+                return Byte.TYPE;
+            } else if (Character.TYPE.getName().equals(className)) {
+                return Character.TYPE;
+            } else if (Short.TYPE.getName().equals(className)) {
+                return Short.TYPE;
+            } else if (Integer.TYPE.getName().equals(className)) {
+                return Integer.TYPE;
+            } else if (Long.TYPE.getName().equals(className)) {
+                return Long.TYPE;
+            } else if (Float.TYPE.getName().equals(className)) {
+                return Float.TYPE;
+            } else if (Double.TYPE.getName().equals(className)) {
+                return Double.TYPE;
+            }
+
+            Class c = loader.loadClass(className);
             return c;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);

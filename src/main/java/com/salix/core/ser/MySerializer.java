@@ -2,72 +2,67 @@ package com.salix.core.ser;
 
 import com.salix.core.io.ByteBufferOutput;
 import com.salix.core.io.DataOutput;
+import com.salix.core.ser.codec.Codec;
 import com.salix.core.ser.codec.CodecConfig;
 import com.salix.core.util.GzipCompressUtil;
 
 /**
- * 负责将一个对象进行序列化，可以被序列化的类型请参考CodecConfig类.
- * 二进制格式遵循,  CodecType_dataByte.
- *
+ * 负责将一个对象进行序列化，可以被序列化的类型请参考CodecConfig类. 二进制格式遵循, CodecType_dataByte.
+ * 
  * @see CodecConfig
  */
-public class MySerializer implements Serializer
-{
+public class MySerializer implements Serializer {
 
-    private static final ThreadLocal<DataOutput> outputRef = new ThreadLocal<DataOutput>();
+	private static final ThreadLocal<DataOutput> outputRef = new ThreadLocal<DataOutput>();
 
-    private static MySerializer instance;
+	private static MySerializer instance;
 
-    private CodecConfig config;
+	private CodecConfig config;
 
-    private MySerializer()
-    {
-        this.config = CodecConfig.load();
-    }
+	private MySerializer() {
+		this.config = CodecConfig.load();
+	}
 
-    public static MySerializer getInstance()
-    {
-        if (instance == null) {
-            synchronized (MySerializer.class) {
-                if (instance == null) {
-                    instance = new MySerializer();
-                }
-            }
-        }
+	public static MySerializer getInstance() {
+		if (instance == null) {
+			synchronized (MySerializer.class) {
+				if (instance == null) {
+					instance = new MySerializer();
+				}
+			}
+		}
 
-        return instance;
-    }
+		return instance;
+	}
 
-    public byte[] ser(Object v) throws SerializeException
-    {
-        return ser(v, true);
-    }
+	public byte[] ser(Object v) throws SerializeException {
+		return ser(v, true);
+	}
 
-    public byte[] ser(Object v, boolean isCompress) throws SerializeException
-    {
-        try {
-            // memory leak
-            //DataOutput output = _getOutput();
-            DataOutput output = new ByteBufferOutput();
+	public byte[] ser(Object v, boolean isCompress) throws SerializeException {
+		try {
+			// memory leak
+			// DataOutput output = _getOutput();
+			DataOutput output = new ByteBufferOutput();
 
-            config.lookup(v).encode(output, v, config);
+			Codec codec = config.lookup(v);
+			codec.encode(output, v, config);
 
-            if (isCompress)
-                return GzipCompressUtil.compress(output.byteArray());
-                
-            return output.byteArray();
-        } catch (Exception e) {
-            throw new SerializeException(e);
-        }
-    }
+			if (isCompress)
+				return GzipCompressUtil.compress(output.byteArray());
 
-    private DataOutput _getOutput()
-    {
-        if (outputRef.get() == null) {
-            outputRef.set(new ByteBufferOutput());
-        }
+			return output.byteArray();
+		} catch (Exception e) {
+			throw new SerializeException(e);
+		}
+	}
 
-        return outputRef.get();
-    }
+	private DataOutput _getOutput() {
+		if (outputRef.get() == null) {
+			outputRef.set(new ByteBufferOutput());
+		}
+
+		return outputRef.get();
+	}
 
 }

@@ -1,9 +1,11 @@
 package com.salix.core.message;
 
+import java.util.Arrays;
+
 public class RpcMessage extends Message {
 
 	private String serviceName;
-	
+
 	private String methodName;
 
 	private Class<?>[] paramTypes;
@@ -15,6 +17,12 @@ public class RpcMessage extends Message {
 	public RpcMessage(String serviceName, Object[] args) {
 		this.serviceName = serviceName;
 		this.args = args;
+	}
+
+	@Override
+	public String toString() {
+		return "RpcMessage [serviceName=" + serviceName + ", methodName=" + methodName + ", paramTypes="
+				+ Arrays.toString(paramTypes) + ", args=" + Arrays.toString(args) + "]";
 	}
 
 	public String getServiceName() {
