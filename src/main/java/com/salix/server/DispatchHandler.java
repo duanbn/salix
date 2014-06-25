@@ -126,13 +126,15 @@ public class DispatchHandler extends IoHandlerAdapter {
 				} else {
 					out.setBody(new ServerInternalException(e));
 				}
-
+				try {
+					pkg = ser.ser(out);
+				} catch (SerializeException e1) {
+					LOG.error(e.getMessage(), e1);
+				}
 			}
 
-			try {
-				pkg = ser.ser(out);
-			} catch (SerializeException e) {
-				LOG.error(e.getMessage(), e);
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("send message size " + pkg.length);
 			}
 
 			IoBuffer buf = IoBuffer.allocate(4 + pkg.length);
