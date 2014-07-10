@@ -53,6 +53,7 @@ public class ObjectCodec implements Codec<Object>
                 } else if (f.getType() == Character.TYPE) {
                     output.writeByte(CodecType.TYPE_CHAR);
                     output.writeChar(f.getChar(v));
+                    continue;
                 } else if (f.getType() == Short.TYPE) {
                     output.writeByte(CodecType.TYPE_SHORT);
                     output.writeShort(f.getShort(v));

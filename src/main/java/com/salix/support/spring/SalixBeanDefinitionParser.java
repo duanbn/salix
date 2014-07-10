@@ -6,57 +6,47 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import com.salix.client.SalixFactoryBean;
 import com.salix.core.util.StringUtil;
 
 public class SalixBeanDefinitionParser implements BeanDefinitionParser {
 
 	public static final Logger LOG = Logger.getLogger(SalixBeanDefinitionParser.class);
 
-	private Class<?> beanClass;
-
-	public SalixBeanDefinitionParser(Class<?> beanClass) {
-		this.beanClass = beanClass;
-	}
-
 	@Override
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		RootBeanDefinition beanDefinition = new RootBeanDefinition();
-		beanDefinition.setBeanClass(beanClass);
-		beanDefinition.setLazyInit(false);
-
 		String id = element.getAttribute("id");
 		if (StringUtil.isBlank(id)) {
 			throw new RuntimeException("id配置错误, id=" + id);
 		}
-		String interfaceClass = element.getAttribute("interface");
-		if (StringUtil.isBlank(interfaceClass)) {
-			throw new RuntimeException("interface配置错误, interface=" + interfaceClass);
-		}
-		String serviceName = element.getAttribute("name");
-		if (StringUtil.isBlank(serviceName)) {
-			throw new RuntimeException("service name配置错误, name=" + serviceName);
-		}
 		// get remote host and port
-		Element parent = (Element) element.getParentNode();
-		if (parent == null) {
-			throw new RuntimeException("配置错误, 找不到cp标签");
+		String host = element.getAttribute("host");
+		int port = Integer.parseInt(element.getAttribute("port"));
+
+		NodeList services = element.getChildNodes();
+		RootBeanDefinition beanDefinition = null;
+		for (int i = 0; i < services.getLength(); i++) {
+			Node service = services.item(i);
+			if (!service.getNodeName().equals("salix:service"))
+				continue;
+
+			beanDefinition = new RootBeanDefinition();
+			beanDefinition.setBeanClass(SalixFactoryBean.class);
+			beanDefinition.setLazyInit(false);
+			String serviceName = service.getAttributes().getNamedItem("name").getTextContent();
+			String interfaceClass = service.getAttributes().getNamedItem("interface").getTextContent();
+			String serviceId = service.getAttributes().getNamedItem("id").getTextContent();
+			beanDefinition.getPropertyValues().addPropertyValue("id", serviceId);
+			beanDefinition.getPropertyValues().addPropertyValue("serviceName", serviceName);
+			beanDefinition.getPropertyValues().addPropertyValue("interfaceClass", interfaceClass);
+			beanDefinition.getPropertyValues().addPropertyValue("host", host);
+			beanDefinition.getPropertyValues().addPropertyValue("port", port);
+
+			parserContext.getRegistry().registerBeanDefinition(serviceId, beanDefinition);
 		}
-		String host = parent.getAttribute("host");
-		int port = Integer.parseInt(parent.getAttribute("port"));
-
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("id=" + id + ", serviceName=" + serviceName + ", interface=" + interfaceClass + ", host=" + host
-					+ ", port=" + port);
-		}
-
-		beanDefinition.getPropertyValues().addPropertyValue("id", id);
-		beanDefinition.getPropertyValues().addPropertyValue("serviceName", serviceName);
-		beanDefinition.getPropertyValues().addPropertyValue("interfaceClass", interfaceClass);
-		beanDefinition.getPropertyValues().addPropertyValue("host", host);
-		beanDefinition.getPropertyValues().addPropertyValue("port", port);
-
-		parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
 
 		return beanDefinition;
 	}
