@@ -8,6 +8,7 @@ import org.springframework.beans.factory.InitializingBean;
 
 import com.salix.client.connection.ConnectionPool;
 import com.salix.client.connection.MyConnectionPool;
+import com.salix.exception.InterfaceNotFoundException;
 
 public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, DisposableBean {
 
@@ -34,7 +35,11 @@ public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, Di
 
 	@Override
 	public Class<?> getObjectType() {
-		return this.getClass();
+		try {
+			return Class.forName(interfaceClass);
+		} catch (ClassNotFoundException e) {
+			throw new InterfaceNotFoundException(this.interfaceClass);
+		}
 	}
 
 	@Override
