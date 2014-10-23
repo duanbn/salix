@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.junit.Test;
+import org.junit.Assert;
 
 import com.salix.core.message.RpcMessage;
 import com.salix.core.ser.DeserializeException;
@@ -41,7 +42,7 @@ public class SerializerTest extends BaseTest {
 		try {
 			byte[] b = ser.ser(Model.class);
 			Class c = deser.deser(b, Class.class);
-			System.out.println(c.getName());
+			Assert.assertEquals(Model.class.getName(), c.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -102,17 +103,17 @@ public class SerializerTest extends BaseTest {
 			 * (System.currentTimeMillis() - start));
 			 */
 
-			// myrpc
+			// salix
 			b = ser.ser(sm, false);
-			showLength("myrpc length", b);
+			showLength("salix length", b);
 			start = System.currentTimeMillis();
 			for (int i = 0; i < times; i++)
 				ser.ser(sm, false);
-			System.out.println("myrpc ser use:" + (System.currentTimeMillis() - start));
+			System.out.println("salix ser use:" + (System.currentTimeMillis() - start));
 			start = System.currentTimeMillis();
 			for (int i = 0; i < times; i++)
 				deser.deser(b, false, Model.class);
-			System.out.println("myrpc deser use:" + (System.currentTimeMillis() - start));
+			System.out.println("salix deser use:" + (System.currentTimeMillis() - start));
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -124,7 +125,7 @@ public class SerializerTest extends BaseTest {
 		try {
 			Model sm = new Model();
 			byte[] b = ser.ser(sm, false);
-			showLength("myrpc write", b);
+			showLength("salix write", b);
 			Model sm1 = deser.deser(b, false, Model.class);
 
 			b = writeObject(sm);
