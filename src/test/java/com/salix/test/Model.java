@@ -110,12 +110,15 @@ public class Model extends BaseTest implements Serializable {
 	public Timestamp time;
 	public Timestamp[] times;
 
+	public EnumTest et = EnumTest.A;
+	public EnumTest[] ets = new EnumTest[] { EnumTest.A, null, EnumTest.B };
+
 	public SubModel sm;
 	public SubModel[] sms;
 
 	public List<String> list1 = new ArrayList<String>();
 	public List<?> nlist;
-	public List<SubModel> list2 = new ArrayList<SubModel>();
+	public List<Object> list2 = new ArrayList<Object>();
 
 	public Set<SubModel> set1 = new HashSet<SubModel>();
 	public Set<SubModel> set2 = new TreeSet<SubModel>();
@@ -194,7 +197,8 @@ public class Model extends BaseTest implements Serializable {
 
 		list1.add("aa");
 		list1.add("bb");
-		list2.add(new SubModel());
+		list2.add("hello world");
+		list2.add(1);
 		list2.add(new SubModel());
 
 		set1.add(new SubModel());
