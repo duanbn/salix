@@ -16,151 +16,11 @@ import com.salix.exception.CodecException;
  * @author duanbn
  * @since 1.0
  */
-<<<<<<< HEAD
-public class ObjectCodec implements Codec<Object>
-{
-
-    public void encode(DataOutput output, Object v, CodecConfig config) throws CodecException
-    {
-        try {
-            output.writeByte(CodecType.TYPE_OBJECT); // write type
-            if (v == null) {
-                output.writeByte(CodecType.NULL); // write isnull
-                return;
-            }
-            output.writeByte(CodecType.NOT_NULL); // write is not null
-
-            Class<?> oc = v.getClass();
-            output.writeUTF8(oc.getName()); // write classname
-
-            Object fvalue = null;
-            Codec codec = null;
-            
-            for (Field f : ReflectUtil.getFields(oc)) { // write field
-                if (!f.isAccessible()) {
-                    f.setAccessible(true);
-                }
-
-                // 基本类型序列化
-                if (f.getType() == Boolean.TYPE) {
-                    output.writeByte(CodecType.TYPE_BOOLEAN);
-                    output.writeBoolean(f.getBoolean(v));
-                    continue;
-                } else if (f.getType() == Byte.TYPE) {
-                    output.writeByte(CodecType.TYPE_BYTE);
-                    output.writeByte(f.getByte(v));
-                    continue;
-                } else if (f.getType() == Character.TYPE) {
-                    output.writeByte(CodecType.TYPE_CHAR);
-                    output.writeChar(f.getChar(v));
-                    continue;
-                } else if (f.getType() == Short.TYPE) {
-                    output.writeByte(CodecType.TYPE_SHORT);
-                    output.writeShort(f.getShort(v));
-                    continue;
-                } else if (f.getType() == Integer.TYPE) {
-                    output.writeByte(CodecType.TYPE_INT);
-                    output.writeInt(f.getInt(v));
-                    continue;
-                } else if (f.getType() == Long.TYPE) {
-                    output.writeByte(CodecType.TYPE_LONG);
-                    output.writeLong(f.getLong(v));
-                    continue;
-                } else if (f.getType() == Float.TYPE) {
-                    output.writeByte(CodecType.TYPE_FLOAT);
-                    output.writeFloat(f.getFloat(v));
-                    continue;
-                } else if (f.getType() == Double.TYPE) {
-                    output.writeByte(CodecType.TYPE_DOUBLE);
-                    output.writeDouble(f.getDouble(v));
-                    continue;
-                }
-
-                fvalue = f.get(v);
-                if (fvalue == null) { // write field isnull
-                    output.writeByte(CodecType.NULL);
-                    continue;
-                }
-                output.writeByte(CodecType.NOT_NULL);
-
-                codec = config.lookup(fvalue);
-                codec.encode(output, fvalue, config);
-            }
-
-        } catch (IllegalAccessException e) {
-            throw new CodecException(e);
-        }
-    }
-
-    public Object decode(DataInput input, CodecConfig config) throws CodecException
-    {
-        try {
-            if (input.readByte() == CodecType.NULL) { // read isnull
-                return null;
-            }
-
-            Class<?> oc = ReflectUtil.getClass(input.readUTF8()); // read classname
-            Object instance = oc.newInstance();
-
-            Object fvalue = null;
-            Codec codec = null;
-            for (Field f : ReflectUtil.getFields(oc)) { // read field
-                if (!f.isAccessible()) {
-                    f.setAccessible(true);
-                }
-
-                byte type = input.readByte();
-
-                // 基本类型反序列化
-                if (type == CodecType.TYPE_BOOLEAN) {
-                    f.setBoolean(instance, input.readBoolean());
-                    continue;
-                } else if (type == CodecType.TYPE_BYTE) {
-                    f.setByte(instance, input.readByte());
-                    continue;
-                } else if (type == CodecType.TYPE_CHAR) {
-                    f.setChar(instance, input.readChar());
-                    continue;
-                } else if (type == CodecType.TYPE_INT) {
-                    f.setInt(instance, input.readInt());
-                    continue;
-                } else if (type == CodecType.TYPE_SHORT) {
-                    f.setShort(instance, input.readShort());
-                    continue;
-                } else if (type == CodecType.TYPE_LONG) {
-                    f.setLong(instance, input.readLong());
-                    continue;
-                } else if (type == CodecType.TYPE_FLOAT) {
-                    f.setFloat(instance, input.readFloat());
-                    continue;
-                } else if (type == CodecType.TYPE_DOUBLE) {
-                    f.setDouble(instance, input.readDouble());
-                    continue;
-                }
-
-                if (type == CodecType.NULL) {
-                    f.set(instance, null);
-                    continue;
-                }
-                type = input.readByte();
-                
-                codec = config.lookup(type);
-                fvalue = codec.decode(input, config);
-
-                f.set(instance, fvalue);
-            }
-            return instance;
-        } catch (Exception e) {
-            throw new CodecException(e);
-        }
-    }
-=======
 public class ObjectCodec implements Codec<Object> {
 
 	public void encode(DataOutput output, Object v, CodecConfig config) throws CodecException {
 		try {
 			output.writeByte(CodecType.TYPE_OBJECT); // write type
-
 			if (v == null) {
 				output.writeByte(CodecType.NULL); // write isnull
 				return;
@@ -180,35 +40,35 @@ public class ObjectCodec implements Codec<Object> {
 
 				// 基本类型序列化
 				if (f.getType() == Boolean.TYPE) {
-					output.writeByte(CodecType.TYPE_OBOOLEAN);
+					output.writeByte(CodecType.TYPE_BOOLEAN);
 					output.writeBoolean(f.getBoolean(v));
 					continue;
 				} else if (f.getType() == Byte.TYPE) {
-					output.writeByte(CodecType.TYPE_OBYTE);
+					output.writeByte(CodecType.TYPE_BYTE);
 					output.writeByte(f.getByte(v));
 					continue;
 				} else if (f.getType() == Character.TYPE) {
-					output.writeByte(CodecType.TYPE_OCHAR);
+					output.writeByte(CodecType.TYPE_CHAR);
 					output.writeChar(f.getChar(v));
 					continue;
 				} else if (f.getType() == Short.TYPE) {
-					output.writeByte(CodecType.TYPE_OSHORT);
+					output.writeByte(CodecType.TYPE_SHORT);
 					output.writeShort(f.getShort(v));
 					continue;
 				} else if (f.getType() == Integer.TYPE) {
-					output.writeByte(CodecType.TYPE_OINT);
+					output.writeByte(CodecType.TYPE_INT);
 					output.writeInt(f.getInt(v));
 					continue;
 				} else if (f.getType() == Long.TYPE) {
-					output.writeByte(CodecType.TYPE_OLONG);
+					output.writeByte(CodecType.TYPE_LONG);
 					output.writeLong(f.getLong(v));
 					continue;
 				} else if (f.getType() == Float.TYPE) {
-					output.writeByte(CodecType.TYPE_OFLOAT);
+					output.writeByte(CodecType.TYPE_FLOAT);
 					output.writeFloat(f.getFloat(v));
 					continue;
 				} else if (f.getType() == Double.TYPE) {
-					output.writeByte(CodecType.TYPE_ODOUBLE);
+					output.writeByte(CodecType.TYPE_DOUBLE);
 					output.writeDouble(f.getDouble(v));
 					continue;
 				}
@@ -249,28 +109,28 @@ public class ObjectCodec implements Codec<Object> {
 				byte type = input.readByte();
 
 				// 基本类型反序列化
-				if (type == CodecType.TYPE_OBOOLEAN) {
+				if (type == CodecType.TYPE_BOOLEAN) {
 					f.setBoolean(instance, input.readBoolean());
 					continue;
-				} else if (type == CodecType.TYPE_OBYTE) {
+				} else if (type == CodecType.TYPE_BYTE) {
 					f.setByte(instance, input.readByte());
 					continue;
-				} else if (type == CodecType.TYPE_OCHAR) {
+				} else if (type == CodecType.TYPE_CHAR) {
 					f.setChar(instance, input.readChar());
 					continue;
-				} else if (type == CodecType.TYPE_OINT) {
+				} else if (type == CodecType.TYPE_INT) {
 					f.setInt(instance, input.readInt());
 					continue;
-				} else if (type == CodecType.TYPE_OSHORT) {
+				} else if (type == CodecType.TYPE_SHORT) {
 					f.setShort(instance, input.readShort());
 					continue;
-				} else if (type == CodecType.TYPE_OLONG) {
+				} else if (type == CodecType.TYPE_LONG) {
 					f.setLong(instance, input.readLong());
 					continue;
-				} else if (type == CodecType.TYPE_OFLOAT) {
+				} else if (type == CodecType.TYPE_FLOAT) {
 					f.setFloat(instance, input.readFloat());
 					continue;
-				} else if (type == CodecType.TYPE_ODOUBLE) {
+				} else if (type == CodecType.TYPE_DOUBLE) {
 					f.setDouble(instance, input.readDouble());
 					continue;
 				}
@@ -291,6 +151,5 @@ public class ObjectCodec implements Codec<Object> {
 			throw new CodecException(e);
 		}
 	}
->>>>>>> master
 
 }
