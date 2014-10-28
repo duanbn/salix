@@ -35,12 +35,12 @@ public class DispatchHandler extends IoHandlerAdapter {
 	private Serializer ser;
 	private Deserializer deser;
 
-	private ProcessorLoader pl;
+	private RpcServiceContext rsc;
 
-	public DispatchHandler(ProcessorLoader pl) {
+	public DispatchHandler(RpcServiceContext rsc) {
 		this.ser = MySerializer.getInstance();
 		this.deser = MyDeserializer.getInstance();
-		this.pl = pl;
+		this.rsc = rsc;
 
 		new Thread() {
 			public void run() {
@@ -76,6 +76,7 @@ public class DispatchHandler extends IoHandlerAdapter {
 				public void run() {
 					while (true) {
 						if (messageQ.isEmpty()) {
+							rsc.destroy();
 							System.exit(0);
 						}
 
@@ -112,7 +113,7 @@ public class DispatchHandler extends IoHandlerAdapter {
 		}
 
 		public void run() {
-			IProcessor processor = pl.get(in.getClass());
+			IProcessor processor = rsc.get(in.getClass());
 
 			byte[] pkg = null;
 			Message out = null;

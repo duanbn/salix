@@ -12,19 +12,17 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import com.salix.server.mina.codec.RpcProtocolCodecFactory;
+
 public class Bootstrap implements ApplicationContextAware {
 
 	public static final Logger LOG = Logger.getLogger(Bootstrap.class);
 
+	private String name;
+
 	private int port;
 
-	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
+	private String zkHost;
 
 	private ApplicationContext springCtx;
 
@@ -34,9 +32,10 @@ public class Bootstrap implements ApplicationContextAware {
 		acceptor.getFilterChain().addLast("logger", new LoggingFilter());
 		acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new RpcProtocolCodecFactory()));
 
-		ProcessorLoader pl = new ProcessorLoader(this.springCtx);
-		pl.load();
-		acceptor.setHandler(new DispatchHandler(pl));
+		RpcServiceContext rsc = new RpcServiceContext(this.name, this.zkHost, this.springCtx);
+		rsc.setListenPort(port);
+		rsc.init();
+		acceptor.setHandler(new DispatchHandler(rsc));
 
 		acceptor.getSessionConfig().setReadBufferSize(4096);
 		acceptor.getSessionConfig().setIdleTime(IdleStatus.BOTH_IDLE, 10);
@@ -50,4 +49,27 @@ public class Bootstrap implements ApplicationContextAware {
 		this.springCtx = applicationContext;
 	}
 
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public String getZkHost() {
+		return zkHost;
+	}
+
+	public void setZkHost(String zkHost) {
+		this.zkHost = zkHost;
+	}
 }

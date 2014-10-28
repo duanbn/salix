@@ -19,7 +19,7 @@ import com.salix.core.ser.MyDeserializer;
 import com.salix.core.ser.MySerializer;
 import com.salix.core.ser.SerializeException;
 import com.salix.core.ser.Serializer;
-import com.salix.server.RpcProtocolEncoder;
+import com.salix.server.mina.codec.RpcProtocolEncoder;
 import com.salix.test.BaseTest;
 import com.salix.test.Model;
 import com.salix.test.SubModel;

@@ -12,11 +12,10 @@ import org.w3c.dom.NodeList;
 import com.salix.client.SalixFactoryBean;
 import com.salix.core.util.StringUtil;
 
-public class SalixBeanDefinitionParser implements BeanDefinitionParser {
+public class SalixClientBeanDefinitionParser implements BeanDefinitionParser {
 
-	public static final Logger LOG = Logger.getLogger(SalixBeanDefinitionParser.class);
+	public static final Logger LOG = Logger.getLogger(SalixClientBeanDefinitionParser.class);
 
-	@Override
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		String id = element.getAttribute("id");
 		if (StringUtil.isBlank(id)) {

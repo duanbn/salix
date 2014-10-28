@@ -25,7 +25,6 @@ public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, Di
 	private String interfaceClass;
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public T getObject() throws Exception {
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		Class<?> clazz = Class.forName(interfaceClass);
@@ -33,7 +32,6 @@ public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, Di
 		return (T) Proxy.newProxyInstance(cl, new Class<?>[] { clazz }, rpcInvokeHandler);
 	}
 
-	@Override
 	public Class<?> getObjectType() {
 		try {
 			return Class.forName(interfaceClass);
@@ -42,18 +40,15 @@ public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, Di
 		}
 	}
 
-	@Override
 	public boolean isSingleton() {
 		return true;
 	}
 
-	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.cpool = new MyConnectionPool(host, port);
 		this.cpool.startup();
 	}
 
-	@Override
 	public void destroy() throws Exception {
 		this.cpool.shutdown();
 	}

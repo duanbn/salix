@@ -2,14 +2,10 @@ package com.salix.server.processor;
 
 import java.lang.reflect.Method;
 
-import org.springframework.context.ApplicationContext;
-
 import com.salix.core.message.Message;
 import com.salix.core.message.RpcMessage;
 
-public class RpcProcessor implements IProcessor {
-
-	private ApplicationContext springCtx;
+public class RpcProcessor extends AbstractProcessor {
 
 	public Message process(Message in) throws Throwable {
 
@@ -34,7 +30,4 @@ public class RpcProcessor implements IProcessor {
 		return out;
 	}
 
-	public void setSpringCtx(ApplicationContext springCtx) {
-		this.springCtx = springCtx;
-	}
 }
