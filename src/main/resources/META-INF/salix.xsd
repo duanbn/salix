@@ -11,32 +11,20 @@
 		<xsd:complexType>
 			<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
 			<xsd:attribute name="port" type="xsd:int"></xsd:attribute>
-			<xsd:attribute name="zkHost" type="xsd:string"></xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="client">
+	<xsd:element name="zookeeper">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:sequence>
-						<xsd:element ref="service" />
-					</xsd:sequence>
-					<xsd:attribute name="host" type="xsd:string"></xsd:attribute>
-					<xsd:attribute name="port" type="xsd:int"></xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attribute name="address" type="xsd:string"></xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="service">
+	<xsd:element name="stub">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
-					<xsd:attribute name="interface" type="xsd:string"></xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+			<!-- rpc service name -->
+			<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+			<xsd:attribute name="interface" type="xsd:string"></xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

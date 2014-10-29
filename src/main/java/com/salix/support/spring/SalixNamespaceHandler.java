@@ -5,8 +5,11 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 public class SalixNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
-		registerBeanDefinitionParser("client", new SalixClientBeanDefinitionParser());
-        registerBeanDefinitionParser("application", new SalixApplicationBeanDefinitionParser());
+		registerBeanDefinitionParser("zookeeper", new SalixZookeeperBeanDefinitionParser());
+
+		registerBeanDefinitionParser("stub", new SalixStubBeanDefinitionParser());
+
+		registerBeanDefinitionParser("application", new SalixApplicationBeanDefinitionParser());
 	}
 
 }

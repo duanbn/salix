@@ -21,11 +21,11 @@ public class RpcInvocationHandler implements InvocationHandler {
 	public static final Logger log = Logger.getLogger(RpcInvocationHandler.class);
 
 	private String serviceName;
-	private ConnectionPool cpool;
+    private SalixApplicationConnector appConnector;
 
-	public RpcInvocationHandler(String serviceName, ConnectionPool cpool) {
+	public RpcInvocationHandler(String serviceName, SalixApplicationConnector appConnector) {
 		this.serviceName = serviceName;
-		this.cpool = cpool;
+        this.appConnector = appConnector;
 	}
 
 	/**
@@ -34,7 +34,7 @@ public class RpcInvocationHandler implements InvocationHandler {
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
 		// 从连接池中获取一个连接
-		Connection conn = cpool.getConnection();
+		Connection conn = this.appConnector.select().getConnection();
 
 		Object returnVal = null;
 		try {
@@ -51,6 +51,7 @@ public class RpcInvocationHandler implements InvocationHandler {
 					break;
 				} catch (IOException e) {
 					Thread.sleep(200);
+                    conn = this.appConnector.select().getConnection();
 				}
 			}
 

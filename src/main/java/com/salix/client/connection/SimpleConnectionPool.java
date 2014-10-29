@@ -16,8 +16,8 @@ import org.apache.log4j.Logger;
  * 
  * @see ConnectionPoolConfig
  */
-public class MyConnectionPool extends AbstractLifecycle implements ConnectionPool {
-	public static final Logger log = Logger.getLogger(MyConnectionPool.class);
+public class SimpleConnectionPool extends AbstractLifecycle implements ConnectionPool {
+	public static final Logger log = Logger.getLogger(SimpleConnectionPool.class);
 
 	public static final int DEFAULT_MIN_CONNECT_NUM = 1;
 	public static final int DEFAULT_MAX_CONNECT_NUM = 20;
@@ -38,7 +38,7 @@ public class MyConnectionPool extends AbstractLifecycle implements ConnectionPoo
 	 */
 	private CheckThread checker;
 
-	public MyConnectionPool(String host, int port) {
+	public SimpleConnectionPool(String host, int port) {
 		pool = new LinkedList<CpConnection>();
 
 		this.host = host;
@@ -77,7 +77,7 @@ public class MyConnectionPool extends AbstractLifecycle implements ConnectionPoo
 			try {
 				CpConnection conn = new CpConnection(this.host, this.port);
 				if (log.isDebugEnabled())
-					log.debug("创建新的连接");
+					log.debug("connect to " + this.host + ":" + this.port + " done");
 				return conn;
 			} catch (IOException e) {
 				try {
@@ -88,7 +88,7 @@ public class MyConnectionPool extends AbstractLifecycle implements ConnectionPoo
 			}
 		}
 
-		throw new IOException("创建连接失败");
+		throw new IOException("create connection failure");
 	}
 
 	public void setMinConnect(int num) {

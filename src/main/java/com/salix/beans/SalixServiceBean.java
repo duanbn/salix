@@ -1,15 +1,18 @@
-package com.salix.server.beans;
+package com.salix.beans;
 
 import java.io.Serializable;
 import java.util.List;
 
 public class SalixServiceBean implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	private String serviceName;
 
 	private List<String> methods;
+
+	public SalixServiceBean() {
+	}
 
 	public SalixServiceBean(String serviceName, List<String> methods) {
 		this.serviceName = serviceName;

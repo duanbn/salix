@@ -1,8 +1,8 @@
-package com.salix.server.beans;
+package com.salix.beans;
 
 import java.io.Serializable;
 
-public class SalixServerAddress implements Serializable {
+public class SalixServerAddressBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -10,7 +10,10 @@ public class SalixServerAddress implements Serializable {
 
 	private int port;
 
-	public SalixServerAddress(String ip, int port) {
+	public SalixServerAddressBean() {
+	}
+
+	public SalixServerAddressBean(String ip, int port) {
 		this.ip = ip;
 		this.port = port;
 	}

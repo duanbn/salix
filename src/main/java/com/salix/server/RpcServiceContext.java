@@ -16,6 +16,8 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.springframework.context.ApplicationContext;
 
+import com.salix.beans.SalixServerAddressBean;
+import com.salix.beans.SalixServiceBean;
 import com.salix.constant.Const;
 import com.salix.core.message.RpcMessage;
 import com.salix.core.message.RpcServiceMessage;
@@ -24,8 +26,6 @@ import com.salix.core.ser.MyDeserializer;
 import com.salix.core.ser.MySerializer;
 import com.salix.core.ser.Serializer;
 import com.salix.core.util.ZkUtil;
-import com.salix.server.beans.SalixServerAddress;
-import com.salix.server.beans.SalixServiceBean;
 import com.salix.server.processor.IProcessor;
 import com.salix.server.processor.RpcProcessor;
 import com.salix.server.processor.RpcServiceProcessor;
@@ -41,7 +41,6 @@ public class RpcServiceContext {
 	private ZooKeeper zkClient;
 
 	private Serializer ser;
-	private Deserializer deser;
 
 	private int listenPort;
 
@@ -49,11 +48,9 @@ public class RpcServiceContext {
 		this.appName = appName;
 		this.springCtx = springCtx;
 
-		ZkUtil zkUtil = new ZkUtil();
-		this.zkClient = zkUtil.getZooKeeper(zkHost);
+		this.zkClient = ZkUtil.getZooKeeper(zkHost);
 
 		this.ser = MySerializer.getInstance();
-		this.deser = MyDeserializer.getInstance();
 	}
 
 	public void init() {
@@ -101,7 +98,7 @@ public class RpcServiceContext {
 			if (stat != null) {
 				this.zkClient.delete(salixAliveServerNode, 0);
 			}
-			byte[] zkNodeData = ser.ser(new SalixServerAddress(localIp, this.listenPort));
+			byte[] zkNodeData = ser.ser(new SalixServerAddressBean(localIp, this.listenPort));
 			this.zkClient.create(salixAliveServerNode, zkNodeData, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
 
 			// put services of this server to zookeeper
