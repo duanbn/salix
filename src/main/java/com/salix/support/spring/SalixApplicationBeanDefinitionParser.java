@@ -15,14 +15,14 @@ public class SalixApplicationBeanDefinitionParser extends SalixBeanDefinitionPar
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 
 		String name = element.getAttribute("name");
-		int port = Integer.parseInt(element.getAttribute("port"));
+        int port = Integer.parseInt(element.getAttribute("port"));
 		String zkUrl = (String) getMeta("zkUrl");
 
 		RootBeanDefinition beanDefinition = new RootBeanDefinition();
 		beanDefinition.setBeanClass(Bootstrap.class);
 		beanDefinition.setLazyInit(false);
 		beanDefinition.getPropertyValues().addPropertyValue("name", name);
-		beanDefinition.getPropertyValues().addPropertyValue("port", port);
+        beanDefinition.getPropertyValues().addPropertyValue("port", port);
 		beanDefinition.getPropertyValues().addPropertyValue("zkHost", zkUrl);
 		beanDefinition.setInitMethodName("startup");
 

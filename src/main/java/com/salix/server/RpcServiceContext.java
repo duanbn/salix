@@ -21,8 +21,6 @@ import com.salix.beans.SalixServiceBean;
 import com.salix.constant.Const;
 import com.salix.core.message.RpcMessage;
 import com.salix.core.message.RpcServiceMessage;
-import com.salix.core.ser.Deserializer;
-import com.salix.core.ser.MyDeserializer;
 import com.salix.core.ser.MySerializer;
 import com.salix.core.ser.Serializer;
 import com.salix.core.util.ZkUtil;

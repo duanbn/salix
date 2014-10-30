@@ -3,12 +3,13 @@ package com.salix.client;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import com.salix.client.connection.Connection;
-import com.salix.client.connection.ConnectionPool;
 import com.salix.core.message.RpcMessage;
+import com.salix.exception.NoAvailableServerException;
 
 /**
  * 客户端动态代理执行类.
@@ -18,14 +19,14 @@ import com.salix.core.message.RpcMessage;
  */
 public class RpcInvocationHandler implements InvocationHandler {
 
-	public static final Logger log = Logger.getLogger(RpcInvocationHandler.class);
+	public static final Logger LOG = Logger.getLogger(RpcInvocationHandler.class);
 
 	private String serviceName;
-    private SalixApplicationConnector appConnector;
+	private Map<String, SalixApplicationConnector> appConnectorMap;
 
-	public RpcInvocationHandler(String serviceName, SalixApplicationConnector appConnector) {
+	public RpcInvocationHandler(String serviceName, Map<String, SalixApplicationConnector> appConnectorMap) {
 		this.serviceName = serviceName;
-        this.appConnector = appConnector;
+		this.appConnectorMap = appConnectorMap;
 	}
 
 	/**
@@ -33,9 +34,13 @@ public class RpcInvocationHandler implements InvocationHandler {
 	 */
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-		// 从连接池中获取一个连接
-		Connection conn = this.appConnector.select().getConnection();
+		// select Application Connector by service name.
+		SalixApplicationConnector appConnector = this.appConnectorMap.get(serviceName);
+		if (appConnector == null) {
+			throw new RuntimeException("can not find service " + serviceName);
+		}
 
+		Connection conn = null;
 		Object returnVal = null;
 		try {
 			RpcMessage msg = new RpcMessage();
@@ -46,12 +51,22 @@ public class RpcInvocationHandler implements InvocationHandler {
 
 			while (true) {
 				try {
+					// 从连接池中获取一个连接
+					conn = appConnector.select().getConnection();
 					conn.send(msg);
 					returnVal = conn.receive().getBody();
 					break;
-				} catch (IOException e) {
-					Thread.sleep(200);
-                    conn = this.appConnector.select().getConnection();
+				} catch (Exception e) {
+					if (e instanceof IOException || e instanceof NoAvailableServerException) {
+						try {
+							Thread.sleep(500);
+							conn = appConnector.select().getConnection();
+						} catch (Exception ex) {
+							if (e instanceof IOException || e instanceof NoAvailableServerException) {
+								LOG.warn(e.getMessage() + " test reconnecting..");
+							}
+						}
+					}
 				}
 			}
 
@@ -64,7 +79,8 @@ public class RpcInvocationHandler implements InvocationHandler {
 
 			return null;
 		} finally {
-			conn.close();
+			if (conn != null)
+				conn.close();
 		}
 	}
 }

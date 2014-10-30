@@ -17,10 +17,10 @@ import org.apache.log4j.Logger;
  * @see ConnectionPoolConfig
  */
 public class SimpleConnectionPool extends AbstractLifecycle implements ConnectionPool {
-	public static final Logger log = Logger.getLogger(SimpleConnectionPool.class);
+	public static final Logger LOG = Logger.getLogger(SimpleConnectionPool.class);
 
 	public static final int DEFAULT_MIN_CONNECT_NUM = 1;
-	public static final int DEFAULT_MAX_CONNECT_NUM = 20;
+	public static final int DEFAULT_MAX_CONNECT_NUM = 10;
 	private int minConnectNum = DEFAULT_MIN_CONNECT_NUM;
 	private int maxConnectNum = DEFAULT_MAX_CONNECT_NUM;
 
@@ -28,7 +28,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 
 	private List<CpConnection> pool;
 
-	private static Semaphore se;
+	private Semaphore se;
 
 	private String host;
 	private int port;
@@ -48,7 +48,10 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	@Override
 	public void doInit() {
 		se = new Semaphore(maxConnectNum, true);
+	}
 
+	@Override
+	public void doStartup() {
 		try {
 			CpConnection conn = null;
 			while (pool.size() < minConnectNum) {
@@ -62,28 +65,39 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 		if (pool.size() != minConnectNum) {
 			throw new IllegalStateException("网络连接错误，初始化连接池失败");
 		}
+
+		// 停止清理线程
+		if (checker != null) {
+			synchronized (checker) {
+				checker.interrupt();
+			}
+		}
+
+		// 启动清理线程.
+		checker = new CheckThread();
+		checker.start();
 	}
 
 	/**
-	 * 创建连接.当由于网络或者服务器原因创建失败则重试3次，间隔1秒.
+	 * 创建连接.当由于网络或者服务器原因创建失败则重试1次，间隔500毫秒.
 	 * 
 	 * @return 新连接.
 	 * @throws IOException
 	 *             连接异常
 	 */
 	private CpConnection createConnection() throws IOException {
-		int retry = 3;
+		int retry = 1;
 		while (retry-- > 0) {
 			try {
 				CpConnection conn = new CpConnection(this.host, this.port);
-				if (log.isDebugEnabled())
-					log.debug("connect to " + this.host + ":" + this.port + " done");
+				if (LOG.isDebugEnabled())
+					LOG.debug("connect to " + this.host + ":" + this.port + " done");
 				return conn;
 			} catch (IOException e) {
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(500);
 				} catch (InterruptedException ex) {
-					log.error(ex);
+					LOG.error(ex);
 				}
 			}
 		}
@@ -111,7 +125,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 		return pool.size();
 	}
 
-	public Connection getConnection() {
+	public Connection getConnection() throws IOException {
 		if (isPause()) {
 			throw new IllegalStateException("获取连接失败，连接池已经暂停");
 		}
@@ -136,19 +150,15 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 			}
 
 			// 当连接池中都不可用时并且没有达到最大连接数则创建新的连接.
-			try {
-				if (pool.size() < maxConnectNum) {
-					conn = createConnection();
-					conn.setActive(se);
-					pool.add(conn);
-					return conn;
-				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			if (pool.size() < maxConnectNum) {
+				conn = createConnection();
+				conn.setActive(se);
+				pool.add(conn);
+				return conn;
 			}
 		}
 
-		throw new RuntimeException("获取连接失败");
+		throw new IOException("获取连接失败");
 	}
 
 	@Override
@@ -169,14 +179,12 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 		}
 
 		// 停止清理线程
-		checker.interrupt();
-	}
-
-	@Override
-	public void doStartup() {
-		// 启动清理线程.
-		checker = new CheckThread();
-		checker.start();
+		if (checker != null) {
+			synchronized (checker) {
+				checker.interrupt();
+			}
+            checker = null;
+		}
 	}
 
 	/**
@@ -208,11 +216,12 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 					Thread.sleep(cleanPeriod);
 				} catch (Exception e) {
 					isRun = false;
-					if (log.isDebugEnabled()) {
-						log.debug("退出清理连接线程");
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("退出清理连接线程");
 					}
 				}
 			}
 		}
+
 	}
 }

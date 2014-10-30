@@ -10,18 +10,26 @@ import org.apache.zookeeper.ZooKeeper.States;
 
 public class ZkUtil {
 
+	public static final int DEFAULT_SESSION_TIMEOUT = 30 * 1000;
+
 	public static ZooKeeper getZooKeeper(String zkUrl) {
-		ZkConnector zkConnector = new ZkConnector(zkUrl);
+		return getZooKeeper(zkUrl, DEFAULT_SESSION_TIMEOUT);
+	}
+
+	public static ZooKeeper getZooKeeper(String zkUrl, int sessionTimeout) {
+		ZkConnector zkConnector = new ZkConnector(zkUrl, sessionTimeout);
 		return zkConnector.getZooKeeper();
 	}
 
 	private static class ZkConnector implements Watcher {
 		private CountDownLatch connectedLatch = new CountDownLatch(1);
-		private int sessionTimeout = 30000;
-		private String zkUrl;
 
-		public ZkConnector(String zkUrl) {
+		private String zkUrl;
+		private int sessionTimeout;
+
+		public ZkConnector(String zkUrl, int sessionTimeout) {
 			this.zkUrl = zkUrl;
+			this.sessionTimeout = sessionTimeout;
 		}
 
 		public ZooKeeper getZooKeeper() {

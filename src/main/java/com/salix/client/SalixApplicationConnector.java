@@ -2,6 +2,7 @@ package com.salix.client;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -19,21 +20,37 @@ import com.salix.client.connection.SimpleConnectionPool;
 import com.salix.constant.Const;
 import com.salix.core.ser.Deserializer;
 import com.salix.core.ser.MyDeserializer;
+import com.salix.exception.NoAvailableServerException;
 
+/**
+ * one application connector.
+ *
+ * @author duanbn
+ */
 public class SalixApplicationConnector implements Watcher {
 
 	public static final Logger LOG = Logger.getLogger(SalixApplicationConnector.class);
 
+	/**
+	 * connection application name.
+	 */
 	private String appName;
-
-	private Deserializer deser;
-	private Random r = new Random();
-
+	/**
+	 * connection service name.
+	 */
+	private List<String> serviceNames;
+	/**
+	 * available connection pool.
+	 */
 	private Map<String, ConnectionPool> connPools;
 
-	private List<String> serviceNames;
+	private Deserializer deser;
+
+	private Random r = new Random();
 
 	private ZooKeeper zkClient;
+
+	private Map<String, SalixApplicationConnector> appConnectorMap;
 
 	public SalixApplicationConnector(String appName, ZooKeeper zkClient) {
 		this.appName = appName;
@@ -49,9 +66,8 @@ public class SalixApplicationConnector implements Watcher {
 	 */
 	public void init() throws Exception {
 		String zkAliveNodePath = _getZkAliveNodePath();
-		String zkServiceNamesPath = _getZkServiceNamesPath();
 
-		// load alive server
+		// init connection pool
 		List<String> aliveAddresses = this.zkClient.getChildren(zkAliveNodePath, this);
 		ConnectionPool connPool = null;
 		for (String aliveAddress : aliveAddresses) {
@@ -61,7 +77,7 @@ public class SalixApplicationConnector implements Watcher {
 		}
 
 		// load rpc service name
-		this.serviceNames = this.zkClient.getChildren(zkServiceNamesPath, this);
+		_loadService();
 	}
 
 	/**
@@ -76,15 +92,15 @@ public class SalixApplicationConnector implements Watcher {
 	/**
 	 * select a available connection pool.
 	 */
-	public ConnectionPool select() {
+	public ConnectionPool select() throws NoAvailableServerException {
 		if (this.connPools.isEmpty()) {
-			throw new RuntimeException("获取连接失败，找不到可用的服务");
+			throw new NoAvailableServerException("get connection fail no available server");
 		}
 
 		Collection<ConnectionPool> cps = this.connPools.values();
 		Iterator<ConnectionPool> cpIt = cps.iterator();
 		if (cps.size() > 1) {
-			int index = r.nextInt(cps.size() - 1);
+			int index = r.nextInt(cps.size());
 			for (int i = 0; i < index; i++) {
 				cpIt.next();
 			}
@@ -96,7 +112,7 @@ public class SalixApplicationConnector implements Watcher {
 		String zkAliveNodePath = _getZkAliveNodePath();
 		String zkServiceNamesPath = _getZkServiceNamesPath();
 
-		// update alive server
+		// update connection pool
 		if (event.getPath().equals(zkAliveNodePath)) {
 			synchronized (this.connPools) {
 				List<String> aliveAddresses = null;
@@ -105,7 +121,8 @@ public class SalixApplicationConnector implements Watcher {
 				} catch (Exception e) {
 					LOG.warn(e);
 				}
-				Set<String> toBeRemove = this.connPools.keySet();
+
+				Set<String> deadAddreses = new HashSet<String>(this.connPools.keySet());
 				if (aliveAddresses != null) {
 					for (String aliveAddress : aliveAddresses) {
 						if (!this.connPools.containsKey(aliveAddress)) {
@@ -117,12 +134,14 @@ public class SalixApplicationConnector implements Watcher {
 								LOG.warn("create connection failure, " + e.getMessage());
 							}
 						} else {
-							toBeRemove.remove(aliveAddress);
+							deadAddreses.remove(aliveAddress);
 						}
 					}
 				}
 
-				for (String deadAddress : toBeRemove) {
+				// clean dead connection
+				for (String deadAddress : deadAddreses) {
+					this.connPools.get(deadAddress).shutdown();
 					this.connPools.remove(deadAddress);
 				}
 			}
@@ -131,9 +150,29 @@ public class SalixApplicationConnector implements Watcher {
 		// update service names
 		if (event.getPath().equals(zkServiceNamesPath)) {
 			try {
-				this.serviceNames = this.zkClient.getChildren(zkServiceNamesPath, this);
+				_loadService();
 			} catch (Exception e) {
 				LOG.warn(e);
+			}
+		}
+	}
+
+	/**
+	 * load first service if there are mutilple same name service.
+	 * 
+	 * @throws Exception
+	 */
+	private void _loadService() throws Exception {
+		String zkServiceNamesPath = _getZkServiceNamesPath();
+
+		this.serviceNames = this.zkClient.getChildren(zkServiceNamesPath, this);
+
+		if (serviceNames != null) {
+			for (String serviceName : serviceNames) {
+				if (!this.appConnectorMap.containsKey(serviceName))
+					this.appConnectorMap.put(serviceName, this);
+				else
+					LOG.warn(serviceName + " has exist, ignore load");
 			}
 		}
 	}
@@ -170,5 +209,13 @@ public class SalixApplicationConnector implements Watcher {
 
 	public List<String> getServiceNames() {
 		return this.serviceNames;
+	}
+
+	public Map<String, SalixApplicationConnector> getAppConnectorMap() {
+		return appConnectorMap;
+	}
+
+	public void setAppConnectorMap(Map<String, SalixApplicationConnector> appConnectorMap) {
+		this.appConnectorMap = appConnectorMap;
 	}
 }

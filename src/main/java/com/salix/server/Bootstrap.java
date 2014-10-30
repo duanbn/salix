@@ -1,6 +1,10 @@
 package com.salix.server;
 
+import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.Random;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.core.service.IoAcceptor;
@@ -35,6 +39,7 @@ public class Bootstrap implements ApplicationContextAware {
 		RpcServiceContext rsc = new RpcServiceContext(this.name, this.zkHost, this.springCtx);
 		rsc.setListenPort(port);
 		rsc.init();
+
 		acceptor.setHandler(new DispatchHandler(rsc));
 
 		acceptor.getSessionConfig().setReadBufferSize(4096);
@@ -47,6 +52,24 @@ public class Bootstrap implements ApplicationContextAware {
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.springCtx = applicationContext;
+	}
+
+	private int _getRandomPort() {
+		Random r = new Random();
+
+		while (true) {
+			int port = r.nextInt(65535);
+			if (port < 10000) {
+				continue;
+			}
+
+			try {
+				new Socket("127.0.0.1", port);
+			} catch (ConnectException e) {
+				return port;
+			} catch (IOException e) {
+			}
+		}
 	}
 
 	public String getName() {
@@ -62,7 +85,11 @@ public class Bootstrap implements ApplicationContextAware {
 	}
 
 	public void setPort(int port) {
-		this.port = port;
+		if (port == 0) {
+			this.port = _getRandomPort();
+		} else {
+			this.port = port;
+		}
 	}
 
 	public String getZkHost() {

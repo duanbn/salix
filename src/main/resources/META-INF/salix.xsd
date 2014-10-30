@@ -10,7 +10,8 @@
 	<xsd:element name="application">
 		<xsd:complexType>
 			<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
-			<xsd:attribute name="port" type="xsd:int"></xsd:attribute>
+            <!-- use random listen port if set zero -->
+            <xsd:attribute name="port" type="xsd:int"></xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

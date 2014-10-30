@@ -17,6 +17,11 @@ import com.salix.constant.Const;
 import com.salix.core.util.ZkUtil;
 import com.salix.exception.InterfaceNotFoundException;
 
+/**
+ * rpc service stub factory bean.
+ *
+ * @author duanbn
+ */
 public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, DisposableBean, Watcher {
 
 	private static final Logger LOG = Logger.getLogger(SalixFactoryBean.class);
@@ -28,20 +33,18 @@ public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, Di
 	private String zkUrl;
 
 	private ZooKeeper zkClient;
-	private Map<String, SalixApplicationConnector> appConnectorMap;
+    /**
+     * keep serviceName - appConnector mapping.
+     * key : service name, value : application connector.
+     */
+	private Map<String, SalixApplicationConnector> appConnectorMap = new HashMap<String, SalixApplicationConnector>();
 
 	@SuppressWarnings("unchecked")
 	public T getObject() throws Exception {
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		Class<?> clazz = Class.forName(interfaceClass);
 
-		// select Application Connector by service name.
-		SalixApplicationConnector appConnector = this.appConnectorMap.get(serviceName);
-		if (appConnector == null) {
-			throw new RuntimeException("can not find service " + serviceName);
-		}
-
-		RpcInvocationHandler rpcInvokeHandler = new RpcInvocationHandler(serviceName, appConnector);
+		RpcInvocationHandler rpcInvokeHandler = new RpcInvocationHandler(serviceName, appConnectorMap);
 
 		return (T) Proxy.newProxyInstance(cl, new Class<?>[] { clazz }, rpcInvokeHandler);
 	}
@@ -59,21 +62,14 @@ public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, Di
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		this.zkClient = ZkUtil.getZooKeeper(this.zkUrl);
+		this.zkClient = ZkUtil.getZooKeeper(this.zkUrl, 2 * 1000);
 
-		List<String> appNames = this.zkClient.getChildren(Const.ZK_ROOT, false);
+		List<String> appNames = this.zkClient.getChildren(Const.ZK_ROOT, this);
 
 		for (String appName : appNames) {
 			SalixApplicationConnector appConnector = new SalixApplicationConnector(appName, this.zkClient);
+			appConnector.setAppConnectorMap(this.appConnectorMap);
 			appConnector.init();
-
-			this.appConnectorMap = new HashMap<String, SalixApplicationConnector>();
-			List<String> serviceNames = appConnector.getServiceNames();
-			if (serviceNames != null) {
-				for (String serviceName : serviceNames) {
-					this.appConnectorMap.put(serviceName, appConnector);
-				}
-			}
 		}
 	}
 
@@ -93,14 +89,8 @@ public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, Di
 				for (String appName : appNames) {
 					if (!this.appConnectorMap.containsKey(appName)) {
 						SalixApplicationConnector appConnector = new SalixApplicationConnector(appName, this.zkClient);
+						appConnector.setAppConnectorMap(this.appConnectorMap);
 						appConnector.init();
-						this.appConnectorMap = new HashMap<String, SalixApplicationConnector>();
-						List<String> serviceNames = appConnector.getServiceNames();
-						if (serviceNames != null) {
-							for (String serviceName : serviceNames) {
-								this.appConnectorMap.put(serviceName, appConnector);
-							}
-						}
 					}
 				}
 			} catch (Exception e) {

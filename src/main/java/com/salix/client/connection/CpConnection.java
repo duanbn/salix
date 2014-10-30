@@ -48,7 +48,11 @@ public class CpConnection extends AbstractConnection {
 			throw new IllegalStateException("连接处于非活动状态, 请重新从连接池中获取连接");
 		}
 
-		super.send(message);
+		try {
+			super.send(message);
+		} finally {
+			this.se.release();
+		}
 	}
 
 	@Override
@@ -57,7 +61,11 @@ public class CpConnection extends AbstractConnection {
 			throw new IllegalStateException("连接处于非活动状态, 请重新从连接池中获取连接");
 		}
 
-		return super.receive();
+		try {
+			return super.receive();
+		} finally {
+			this.se.release();
+		}
 	}
 
 	/**
@@ -77,6 +85,8 @@ public class CpConnection extends AbstractConnection {
 				this.channel.close();
 		} catch (IOException e) {
 			log.warn("关闭通道失败");
+		} finally {
+			this.se.release();
 		}
 	}
 
