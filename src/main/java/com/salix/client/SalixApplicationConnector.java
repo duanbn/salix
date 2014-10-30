@@ -108,6 +108,13 @@ public class SalixApplicationConnector implements Watcher {
 		return cpIt.next();
 	}
 
+	public void deadServer(String deadAddress) {
+		if (this.connPools.containsKey(deadAddress)) {
+			this.connPools.get(deadAddress).shutdown();
+			this.connPools.remove(deadAddress);
+		}
+	}
+
 	public void process(WatchedEvent event) {
 		String zkAliveNodePath = _getZkAliveNodePath();
 		String zkServiceNamesPath = _getZkServiceNamesPath();
@@ -140,9 +147,8 @@ public class SalixApplicationConnector implements Watcher {
 				}
 
 				// clean dead connection
-				for (String deadAddress : deadAddreses) {
-					this.connPools.get(deadAddress).shutdown();
-					this.connPools.remove(deadAddress);
+				for (String address : deadAddreses) {
+					deadServer(address);
 				}
 			}
 		}

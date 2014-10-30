@@ -58,4 +58,10 @@ public interface ConnectionPool extends Lifecycle {
 	 */
 	public Connection getConnection() throws IOException;
 
+    /**
+     * get server's address.
+     * ip:port.
+     */
+    public String getAddress();
+
 }

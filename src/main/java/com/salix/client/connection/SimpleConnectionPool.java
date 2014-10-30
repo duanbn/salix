@@ -59,7 +59,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 				pool.add(conn);
 			}
 		} catch (IOException e) {
-			throw new IllegalStateException("网络连接错误，初始化连接池失败");
+			throw new IllegalStateException("网络连接错误，初始化连接池失败:" + e.getMessage());
 		}
 
 		if (pool.size() != minConnectNum) {
@@ -79,14 +79,14 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	}
 
 	/**
-	 * 创建连接.当由于网络或者服务器原因创建失败则重试1次，间隔500毫秒.
+	 * 创建连接.当由于网络或者服务器原因创建失败则重试3次，间隔1秒.
 	 * 
 	 * @return 新连接.
 	 * @throws IOException
 	 *             连接异常
 	 */
 	private CpConnection createConnection() throws IOException {
-		int retry = 1;
+		int retry = 3;
 		while (retry-- > 0) {
 			try {
 				CpConnection conn = new CpConnection(this.host, this.port);
@@ -95,7 +95,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 				return conn;
 			} catch (IOException e) {
 				try {
-					Thread.sleep(500);
+					Thread.sleep(1000);
 				} catch (InterruptedException ex) {
 					LOG.error(ex);
 				}
@@ -161,6 +161,10 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 		throw new IOException("获取连接失败");
 	}
 
+	public String getAddress() {
+		return this.host + ":" + this.port;
+	}
+
 	@Override
 	public void doPause() {
 		throw new UnsupportedOperationException();
@@ -183,7 +187,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 			synchronized (checker) {
 				checker.interrupt();
 			}
-            checker = null;
+			checker = null;
 		}
 	}
 

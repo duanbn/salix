@@ -19,7 +19,7 @@ public class Shutdown {
 			System.exit(-1);
 		}
 
-		Shutdown sd = new Shutdown("localhost", Integer.parseInt(args[0]));
+		Shutdown sd = new Shutdown("127.0.0.1", Integer.parseInt(args[0]));
 		sd.doShutdown();
 	}
 

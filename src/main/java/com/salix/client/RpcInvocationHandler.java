@@ -1,6 +1,5 @@
 package com.salix.client;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -8,6 +7,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.salix.client.connection.Connection;
+import com.salix.client.connection.ConnectionPool;
 import com.salix.core.message.RpcMessage;
 import com.salix.exception.NoAvailableServerException;
 
@@ -49,23 +49,27 @@ public class RpcInvocationHandler implements InvocationHandler {
 			msg.setParamTypes(method.getParameterTypes());
 			msg.setArgs(args);
 
-			while (true) {
+			ConnectionPool cp = null;
+			int retry = 3;
+			while (retry-- > 0) {
 				try {
-					// 从连接池中获取一个连接
-					conn = appConnector.select().getConnection();
+					cp = appConnector.select();
+					conn = cp.getConnection();
 					conn.send(msg);
 					returnVal = conn.receive().getBody();
 					break;
+				} catch (NoAvailableServerException e) {
+					throw e;
 				} catch (Exception e) {
-					if (e instanceof IOException || e instanceof NoAvailableServerException) {
-						try {
-							Thread.sleep(500);
-							conn = appConnector.select().getConnection();
-						} catch (Exception ex) {
-							if (e instanceof IOException || e instanceof NoAvailableServerException) {
-								LOG.warn(e.getMessage() + " test reconnecting..");
-							}
-						}
+					LOG.warn(e.getMessage() + " test reconnecting..");
+					try {
+						Thread.sleep(100);
+						appConnector.deadServer(cp.getAddress());
+						cp = appConnector.select();
+						conn = cp.getConnection();
+					} catch (NoAvailableServerException ex) {
+						throw ex;
+					} catch (Exception ex) {
 					}
 				}
 			}
