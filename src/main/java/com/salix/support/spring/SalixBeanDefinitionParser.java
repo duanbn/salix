@@ -17,16 +17,4 @@ public abstract class SalixBeanDefinitionParser implements BeanDefinitionParser 
 		return metaCache.get(key);
 	}
 
-	// protected String getZookeeperElement(Element element) {
-	// NodeList nodeList = element.getParentNode().getChildNodes();
-	// for (int i = 0; i < nodeList.getLength(); i++) {
-	// Node ele = nodeList.item(i);
-	// if (ele.getNodeName().equals("salix:zookeeper")) {
-	// return ((Element) ele).getAttribute("address");
-	// }
-	// }
-	//
-	// throw new RuntimeException("找不到配置中心的zookeeper地址");
-	// }
-
 }
