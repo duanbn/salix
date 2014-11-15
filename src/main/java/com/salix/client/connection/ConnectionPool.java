@@ -14,6 +14,18 @@ import java.io.IOException;
  */
 public interface ConnectionPool extends Lifecycle {
 
+    /**
+     * 从连接池中移除某个连接.
+     */
+    public void removeConnection(String connAddress);
+
+    /**
+     * 判断服务器是否还活着.
+     *
+     * @return 还活着返回true, 否则返回false
+     */
+    public boolean ensureServerAlive();
+
 	/**
 	 * 设置连接池的最小连接数.
 	 * 

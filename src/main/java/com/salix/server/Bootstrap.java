@@ -42,9 +42,6 @@ public class Bootstrap implements ApplicationContextAware {
 
 		acceptor.setHandler(new DispatchHandler(rsc));
 
-		acceptor.getSessionConfig().setReadBufferSize(4096);
-		acceptor.getSessionConfig().setIdleTime(IdleStatus.BOTH_IDLE, 10);
-
 		acceptor.bind(new InetSocketAddress(this.port));
 
 		LOG.info("startup done listen port " + this.port);

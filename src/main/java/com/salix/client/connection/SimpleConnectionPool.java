@@ -1,9 +1,10 @@
 package com.salix.client.connection;
 
+import java.net.*;
+
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
@@ -20,13 +21,13 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	public static final Logger LOG = Logger.getLogger(SimpleConnectionPool.class);
 
 	public static final int DEFAULT_MIN_CONNECT_NUM = 1;
-	public static final int DEFAULT_MAX_CONNECT_NUM = 10;
+	public static final int DEFAULT_MAX_CONNECT_NUM = 3;
 	private int minConnectNum = DEFAULT_MIN_CONNECT_NUM;
 	private int maxConnectNum = DEFAULT_MAX_CONNECT_NUM;
 
 	private int cleanPeriod = 20 * 1000;
 
-	private List<CpConnection> pool;
+	private Map<String, CpConnection> pool;
 
 	private Semaphore se;
 
@@ -39,7 +40,8 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	private CheckThread checker;
 
 	public SimpleConnectionPool(String host, int port) {
-		pool = new LinkedList<CpConnection>();
+        super();
+		pool = new HashMap<String, CpConnection>();
 
 		this.host = host;
 		this.port = port;
@@ -54,15 +56,15 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	public void doStartup() {
 		try {
 			CpConnection conn = null;
-			while (pool.size() < minConnectNum) {
+			while (this.pool.size() < minConnectNum) {
 				conn = createConnection();
-				pool.add(conn);
+				this.pool.put(conn.getLocalAddress(), conn);
 			}
 		} catch (IOException e) {
 			throw new IllegalStateException("网络连接错误，初始化连接池失败:" + e.getMessage());
 		}
 
-		if (pool.size() != minConnectNum) {
+		if (this.pool.size() != minConnectNum) {
 			throw new IllegalStateException("网络连接错误，初始化连接池失败");
 		}
 
@@ -86,24 +88,46 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	 *             连接异常
 	 */
 	private CpConnection createConnection() throws IOException {
-		int retry = 3;
-		while (retry-- > 0) {
-			try {
-				CpConnection conn = new CpConnection(this.host, this.port);
-				if (LOG.isDebugEnabled())
-					LOG.debug("connect to " + this.host + ":" + this.port + " done");
-				return conn;
-			} catch (IOException e) {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException ex) {
-					LOG.error(ex);
-				}
-			}
-		}
+        int retry = 3;
+        while (retry -- > 0) {
+            try {
+                CpConnection conn = new CpConnection(this.host, this.port);
+                conn.setCp(this);
+                LOG.info("create new connection " + conn.getLocalAddress() + " done");
+                return conn;
+            } catch (IOException e) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    LOG.error(ex);
+                }
+            }
+        }
 
-		throw new IOException("create connection failure");
+		throw new IOException("create new connection to " + this.host + ":" + this.port + " failure");
 	}
+
+    public void removeConnection(String connAddress) {
+        this.pool.remove(connAddress);
+    }
+
+    public boolean ensureServerAlive() {
+        boolean isAlive = true;
+        Socket s = null;
+        try {
+            s = new Socket(this.host, this.port);
+        } catch (Exception e) {
+            isAlive = false;
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+            } catch (Exception e) {
+            }
+        }
+        return isAlive;
+    }
 
 	public void setMinConnect(int num) {
 		this.minConnectNum = num;
@@ -122,7 +146,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	}
 
 	public int getActiveConnect() {
-		return pool.size();
+		return this.pool.size();
 	}
 
 	public Connection getConnection() throws IOException {
@@ -130,30 +154,37 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 			throw new IllegalStateException("获取连接失败，连接池已经暂停");
 		}
 		if (isShutdown()) {
-			throw new IllegalStateException("连接池已经关闭");
+			throw new IllegalStateException("连接池已经关闭, address=" + this.host + ":" + this.port);
 		}
 
-		synchronized (pool) {
-			try {
-				se.acquire();
-			} catch (InterruptedException e1) {
-				throw new RuntimeException(e1);
-			}
+        try {
+            se.acquire();
+        } catch (InterruptedException e1) {
+            throw new RuntimeException(e1);
+        }
 
+		synchronized (this.pool) {
 			CpConnection conn = null;
 			// 遍历连接池找到可用的连接.
-			for (CpConnection c : pool) {
-				if (c.isOpen() && !c.isActive()) {
-					c.setActive(se);
-					return c;
+            Iterator<CpConnection> connIt = this.pool.values().iterator();
+            while (connIt.hasNext()) {
+                CpConnection c = connIt.next();
+                if (c.isOpen() && !c.isActive()) {
+                    c.setActive(se);
+                    if (c.ping() >= 0) {
+                        return c;
+                    } else {
+                        c.close();
+                        connIt.remove();
+                    }
 				}
-			}
+            }
 
 			// 当连接池中都不可用时并且没有达到最大连接数则创建新的连接.
-			if (pool.size() < maxConnectNum) {
+			if (this.pool.size() < maxConnectNum) {
 				conn = createConnection();
 				conn.setActive(se);
-				pool.add(conn);
+				this.pool.put(conn.getLocalAddress(), conn);
 				return conn;
 			}
 		}
@@ -178,7 +209,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	@Override
 	public void doShutdown() {
 		// 关闭连接池的连接.
-		for (CpConnection c : pool) {
+		for (CpConnection c : this.pool.values()) {
 			c.closeChannel();
 		}
 
@@ -206,7 +237,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 			while (isRun && !this.isInterrupted()) {
 				try {
 					synchronized (pool) {
-						Iterator<CpConnection> it = pool.iterator();
+						Iterator<CpConnection> it = pool.values().iterator();
 						CpConnection conn = null;
 						while (it.hasNext() && pool.size() > minConnectNum) {
 							conn = it.next();

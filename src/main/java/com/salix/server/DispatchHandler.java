@@ -9,6 +9,8 @@ import org.apache.log4j.Logger;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.session.*;
+import org.apache.mina.transport.socket.*;
 
 import com.salix.core.message.Message;
 import com.salix.core.message.ShutdownMessage;
@@ -63,6 +65,15 @@ public class DispatchHandler extends IoHandlerAdapter {
 		if (isTobeShutdown.get()) {
 			session.close(true);
 		}
+
+        IoSessionConfig cfg = session.getConfig();
+        if (cfg instanceof SocketSessionConfig) {
+            ((SocketSessionConfig) cfg).setReceiveBufferSize(4096);
+            ((SocketSessionConfig) cfg).setKeepAlive(true);
+            ((SocketSessionConfig) cfg).setSoLinger(0);
+            ((SocketSessionConfig) cfg).setTcpNoDelay(true);
+            //((SocketSessionConfig) cfg).setWriteTimeout(1000 * 5);
+        }
 	}
 
 	@Override

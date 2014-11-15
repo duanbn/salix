@@ -14,7 +14,7 @@ import com.salix.core.message.Message;
  * @since 1.1
  */
 public class CpConnection extends AbstractConnection {
-	public static final Logger log = Logger.getLogger(CpConnection.class);
+	public static final Logger LOG = Logger.getLogger(CpConnection.class);
 
 	/**
 	 * 当前连接是否被激活
@@ -22,6 +22,8 @@ public class CpConnection extends AbstractConnection {
 	private boolean active;
 
 	private Semaphore se;
+
+    private ConnectionPool cp;
 
 	public CpConnection(String host, int port) throws IOException {
 		super(host, port);
@@ -43,29 +45,12 @@ public class CpConnection extends AbstractConnection {
 	}
 
 	@Override
-	public void send(Message message) throws IOException {
+	public Message send(Message message) throws IOException {
 		if (!isActive()) {
 			throw new IllegalStateException("连接处于非活动状态, 请重新从连接池中获取连接");
 		}
 
-		try {
-			super.send(message);
-		} finally {
-			this.se.release();
-		}
-	}
-
-	@Override
-	public Message receive() throws IOException {
-		if (!isActive()) {
-			throw new IllegalStateException("连接处于非活动状态, 请重新从连接池中获取连接");
-		}
-
-		try {
-			return super.receive();
-		} finally {
-			this.se.release();
-		}
+        return super.send(message);
 	}
 
 	/**
@@ -81,12 +66,14 @@ public class CpConnection extends AbstractConnection {
 	 */
 	public void closeChannel() {
 		try {
-			if (isOpen())
+			if (isOpen()) {
 				this.channel.close();
+                this.cp.removeConnection(this.getLocalAddress());
+                this.close();
+                LOG.info(this.getLocalAddress() + " disconnection");
+            }
 		} catch (IOException e) {
-			log.warn("关闭通道失败");
-		} finally {
-			this.se.release();
+			LOG.warn("关闭通道失败");
 		}
 	}
 
@@ -97,5 +84,12 @@ public class CpConnection extends AbstractConnection {
 		info.append(", port=").append(super.getLocalPort());
 		return info.toString();
 	}
-
+    
+    public ConnectionPool getCp() {
+        return cp;
+    }
+    
+    public void setCp(ConnectionPool cp) {
+        this.cp = cp;
+    }
 }

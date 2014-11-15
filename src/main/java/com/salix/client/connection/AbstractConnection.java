@@ -8,7 +8,7 @@ import java.nio.channels.SocketChannel;
 
 import org.apache.log4j.Logger;
 
-import com.salix.core.message.Message;
+import com.salix.core.message.*;
 import com.salix.core.ser.DeserializeException;
 import com.salix.core.ser.Deserializer;
 import com.salix.core.ser.MyDeserializer;
@@ -23,7 +23,7 @@ import com.salix.core.ser.Serializer;
  * @since 1.1
  */
 public abstract class AbstractConnection implements Connection {
-	public static final Logger log = Logger.getLogger(AbstractConnection.class);
+	public static final Logger LOG = Logger.getLogger(AbstractConnection.class);
 
 	/**
 	 * socket通道.
@@ -52,8 +52,7 @@ public abstract class AbstractConnection implements Connection {
 	protected String localAddress;
 	protected int localPort;
 
-	private Object readLock = new Object();
-	private Object writeLock = new Object();
+    private Object sendLock = new Object();
 
 	/**
 	 * 创建一个连接.
@@ -95,6 +94,11 @@ public abstract class AbstractConnection implements Connection {
 			}
 		}
 
+        // config client socket
+        channel.socket().setReceiveBufferSize(4096);
+        channel.socket().setKeepAlive(true);
+        channel.socket().setTcpNoDelay(true);
+        channel.socket().setSoLinger(true, 0);
 		this.localAddress = channel.socket().getLocalAddress().getHostAddress();
 		this.localPort = channel.socket().getLocalPort();
 	}
@@ -103,95 +107,107 @@ public abstract class AbstractConnection implements Connection {
 	 * 获取客户端到服务器端的网络延迟. 无法连接服务器时返回-1.
 	 */
 	public int ping() {
-		return -1;
+        PingMessage send = new PingMessage();
+        send.setTime(System.currentTimeMillis());
+
+        try {
+            PingMessage receive = (PingMessage) send(send);
+            return receive.getElapse();
+        } catch (Exception e) {
+            return -1;
+        }
 	}
 
-	public void send(Message message) throws IOException {
-		synchronized (writeLock) {
-			ensureOpen();
+    public Message send(Message message) throws IOException {
+        synchronized(sendLock) {
+            write(message);
+            return read();
+        }
+    }
 
-			// send message to server
-			try {
-				byte[] b = ser.ser(message);
-				if (log.isDebugEnabled()) {
-					log.debug("send data body length=" + b.length);
-				}
-				int alloSize = b.length + HEAD_BODY_LENGTH;
-				ByteBuffer writeBuf = ByteBuffer.allocate(alloSize);
-				writeBuf.putInt(b.length).put(b);
-				writeBuf.flip();
-				while (writeBuf.hasRemaining()) {
-					channel.write(writeBuf);
-				}
-				writeBuf.clear();
-			} catch (SerializeException e) {
-				throw new RuntimeException(e);
-			} catch (IOException e) {
-				if (this.channel.isOpen()) {
-					this.channel.close();
-				}
-				throw e;
-			}
-		}
+
+	public void write(Message message) throws IOException {
+        ensureOpen();
+
+        // send message to server
+        try {
+            byte[] b = ser.ser(message);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("send data body length=" + b.length);
+            }
+            int alloSize = b.length + HEAD_BODY_LENGTH;
+            ByteBuffer writeBuf = ByteBuffer.allocate(alloSize);
+            writeBuf.putInt(b.length).put(b);
+            writeBuf.flip();
+            while (writeBuf.hasRemaining()) {
+                channel.write(writeBuf);
+            }
+            writeBuf.clear();
+        } catch (SerializeException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            if (this.channel.isOpen()) {
+                this.channel.close();
+            }
+            throw e;
+        }
 	}
 
-	public Message receive() throws IOException {
-		synchronized (readLock) {
-			ensureOpen();
+    public Message read() throws IOException {
+        ensureOpen();
 
-			// receive message from server.
-			try {
-				int readCount = 0;
-				// read message length.
-				while (headBuf.hasRemaining()) {
-					int c = channel.read(headBuf);
-					if (c == -1) {
-						if (this.channel.isOpen()) {
-							this.channel.close();
-						}
-						throw new IOException("连接关闭");
-					}
-					readCount += c;
-				}
-				int msgSize = headBuf.getInt(0);
-				headBuf.clear();
+        // receive message from server.
+        try {
+            int readCount = 0;
+            // read message length.
+            while (headBuf.hasRemaining()) {
+                int c = channel.read(headBuf);
+                if (c == -1) {
+                    if (this.channel.isOpen()) {
+                        this.channel.close();
+                    }
+                    throw new IOException("连接关闭");
+                }
+                readCount += c;
+            }
+            int msgSize = headBuf.getInt(0);
+            headBuf.clear();
 
-				if (log.isDebugEnabled()) {
-					log.debug("message size " + msgSize);
-				}
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("message size " + msgSize);
+            }
 
-				byte[] msgData = new byte[msgSize];
-				ByteBuffer bodyBuf = ByteBuffer.allocate(msgSize);
-				readCount = 0;
-				// read message data.
-				while (readCount < msgSize) {
-					int c = channel.read(bodyBuf);
-					if (c == -1) {
-						if (this.channel.isOpen()) {
-							this.channel.close();
-						}
-						throw new IOException("连接关闭");
-					}
-					readCount += c;
-				}
-				if (log.isDebugEnabled()) {
-					log.debug("read message size " + readCount);
-				}
-				bodyBuf.flip();
-				bodyBuf.get(msgData, 0, bodyBuf.limit());
-				bodyBuf.clear();
+            byte[] msgData = new byte[msgSize];
+            ByteBuffer bodyBuf = ByteBuffer.allocate(msgSize);
+            readCount = 0;
+            // read message data.
+            while (readCount < msgSize) {
+                int c = channel.read(bodyBuf);
+                if (c == -1) {
+                    if (this.channel.isOpen()) {
+                        this.channel.close();
+                    }
+                    throw new IOException("连接关闭");
+                }
+                readCount += c;
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("read message size " + readCount);
+            }
+            bodyBuf.flip();
+            bodyBuf.get(msgData, 0, bodyBuf.limit());
+            bodyBuf.clear();
 
-				Message msg = deser.deser(msgData, Message.class);
-				return msg;
-			} catch (DeserializeException e) {
-				throw new RuntimeException(e);
-			} catch (IOException e) {
-				if (this.channel.isOpen()) {
-					this.channel.close();
-				}
-				throw e;
-			}
-		}
+            Message msg = deser.deser(msgData, Message.class);
+            return msg;
+        } catch (DeserializeException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            if (this.channel.isOpen()) {
+                this.channel.close();
+            }
+            throw e;
+        }
 	}
 
 	/**
@@ -228,7 +244,7 @@ public abstract class AbstractConnection implements Connection {
 	 * @return localAddress as String.
 	 */
 	public String getLocalAddress() {
-		return localAddress;
+		return localAddress + ":" + localPort;
 	}
 
 	/**

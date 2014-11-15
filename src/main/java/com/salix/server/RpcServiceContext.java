@@ -19,7 +19,7 @@ import org.springframework.context.ApplicationContext;
 import com.salix.beans.SalixServerAddressBean;
 import com.salix.beans.SalixServiceBean;
 import com.salix.constant.Const;
-import com.salix.core.message.RpcMessage;
+import com.salix.core.message.*;
 import com.salix.core.message.RpcServiceMessage;
 import com.salix.core.ser.MySerializer;
 import com.salix.core.ser.Serializer;
@@ -27,6 +27,7 @@ import com.salix.core.util.ZkUtil;
 import com.salix.server.processor.IProcessor;
 import com.salix.server.processor.RpcProcessor;
 import com.salix.server.processor.RpcServiceProcessor;
+import com.salix.server.processor.*;
 
 public class RpcServiceContext {
 
@@ -60,6 +61,10 @@ public class RpcServiceContext {
 		IProcessor rpcServiceProcessor = new RpcServiceProcessor(this);
 		processorConfig.put(RpcServiceMessage.class, rpcServiceProcessor);
 		LOG.info("load RpcServiceProcessor done");
+
+        IProcessor pingProcessor = new PingProcessor();
+        processorConfig.put(PingMessage.class, pingProcessor);
+        LOG.info("load PingProcessor done");
 
 		_initMeta();
 	}

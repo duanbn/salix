@@ -91,11 +91,21 @@ public class SalixApplicationConnector implements Watcher {
 
 	/**
 	 * select a available connection pool.
+     * random select algo.
 	 */
 	public ConnectionPool select() throws NoAvailableServerException {
 		if (this.connPools.isEmpty()) {
 			throw new NoAvailableServerException("get connection fail no available server");
 		}
+
+        // test info
+        /*
+        StringBuilder keys = new StringBuilder();
+        for (String key : this.connPools.keySet()) {
+            keys.append(key).append(",");
+        }
+        LOG.info(keys.toString());
+        */
 
 		Collection<ConnectionPool> cps = this.connPools.values();
 		Iterator<ConnectionPool> cpIt = cps.iterator();
@@ -105,13 +115,29 @@ public class SalixApplicationConnector implements Watcher {
 				cpIt.next();
 			}
 		}
-		return cpIt.next();
+		ConnectionPool cp = cpIt.next();
+
+        // double check server is alive.
+        if (cp.ensureServerAlive()) {
+            return cp;
+        } else {
+            if (!cp.ensureServerAlive())
+                deadServer(cp.getAddress());
+            return select();
+        }
 	}
 
 	public void deadServer(String deadAddress) {
 		if (this.connPools.containsKey(deadAddress)) {
 			this.connPools.get(deadAddress).shutdown();
 			this.connPools.remove(deadAddress);
+
+            // delete zk node
+            try {
+                this.zkClient.delete(_getZkAliveNodePath() + "/" + deadAddress, 0);
+            } catch (Exception e) {
+                LOG.error(e);
+            }
 		}
 	}
 

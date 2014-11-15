@@ -6,8 +6,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.salix.client.connection.Connection;
-import com.salix.client.connection.ConnectionPool;
+import com.salix.client.connection.*;
 import com.salix.core.message.RpcMessage;
 import com.salix.exception.NoAvailableServerException;
 
@@ -19,72 +18,63 @@ import com.salix.exception.NoAvailableServerException;
  */
 public class RpcInvocationHandler implements InvocationHandler {
 
-	public static final Logger LOG = Logger.getLogger(RpcInvocationHandler.class);
+    public static final Logger LOG = Logger.getLogger(RpcInvocationHandler.class);
 
-	private String serviceName;
-	private Map<String, SalixApplicationConnector> appConnectorMap;
+    private String serviceName;
+    private Map<String, SalixApplicationConnector> appConnectorMap;
 
-	public RpcInvocationHandler(String serviceName, Map<String, SalixApplicationConnector> appConnectorMap) {
-		this.serviceName = serviceName;
-		this.appConnectorMap = appConnectorMap;
-	}
+    public RpcInvocationHandler(String serviceName, Map<String, SalixApplicationConnector> appConnectorMap) {
+        this.serviceName = serviceName;
+        this.appConnectorMap = appConnectorMap;
+    }
 
-	/**
-	 * 执行调用方法.
-	 */
-	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    /**
+     * 执行调用方法.
+     */
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-		// select Application Connector by service name.
-		SalixApplicationConnector appConnector = this.appConnectorMap.get(serviceName);
-		if (appConnector == null) {
-			throw new RuntimeException("can not find service " + serviceName);
-		}
+        // select Application Connector by service name.
+        SalixApplicationConnector appConnector = this.appConnectorMap.get(serviceName);
+        if (appConnector == null) {
+            throw new RuntimeException("can not find service " + serviceName);
+        }
 
-		Connection conn = null;
-		Object returnVal = null;
-		try {
-			RpcMessage msg = new RpcMessage();
-			msg.setServiceName(serviceName);
-			msg.setMethodName(method.getName());
-			msg.setParamTypes(method.getParameterTypes());
-			msg.setArgs(args);
+        Object returnVal = null;
+        RpcMessage msg = new RpcMessage();
+        msg.setServiceName(serviceName);
+        msg.setMethodName(method.getName());
+        msg.setParamTypes(method.getParameterTypes());
+        msg.setArgs(args);
 
-			ConnectionPool cp = null;
-			int retry = 3;
-			while (retry-- > 0) {
-				try {
-					cp = appConnector.select();
-					conn = cp.getConnection();
-					conn.send(msg);
-					returnVal = conn.receive().getBody();
-					break;
-				} catch (NoAvailableServerException e) {
-					throw e;
-				} catch (Exception e) {
-					LOG.warn(e.getMessage() + " test reconnecting..");
-					try {
-						Thread.sleep(100);
-						appConnector.deadServer(cp.getAddress());
-						cp = appConnector.select();
-						conn = cp.getConnection();
-					} catch (NoAvailableServerException ex) {
-						throw ex;
-					} catch (Exception ex) {
-					}
-				}
-			}
+        ConnectionPool cp = null;
+        Connection conn = null;
+        int retry = 3;
+        while (retry-- > 0) {
+            try {
+                cp = appConnector.select();
+                conn = cp.getConnection();
+                returnVal = conn.send(msg).getBody();
+                conn.close();
+                break;
+            } catch (NoAvailableServerException e) {
+                throw e;
+            } catch (Exception e) {
+                if (conn != null) {
+                    ((CpConnection) conn).closeChannel();
+                }
+                if (LOG.isDebugEnabled())
+                    LOG.debug(e.getMessage() + " test reconnecting..", e);
+            }
+        }
 
-			if (returnVal != null) {
-				if (returnVal instanceof Throwable) {
-					throw (Throwable) returnVal;
-				}
-				return returnVal;
-			}
+        if (returnVal != null) {
+            if (returnVal instanceof Throwable) {
+                throw (Throwable) returnVal;
+            }
+            return returnVal;
+        }
 
-			return null;
-		} finally {
-			if (conn != null)
-				conn.close();
-		}
-	}
+        return null;
+    }
+
 }

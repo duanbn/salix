@@ -24,15 +24,9 @@ public interface Connection {
 	 * 
 	 * @param message
 	 *            发送的信息.
+     * @return 接收到的消息
 	 */
-	public void send(Message message) throws IOException;
-
-	/**
-	 * 获取服务器发送来的信息，不管通道是否设置为阻塞，此方法都会阻塞.
-	 * 
-	 * @return 接收到的信息
-	 */
-	public Message receive() throws IOException;
+	public Message send(Message message) throws IOException;
 
 	/**
 	 * 逻辑关闭连接. 关闭连接并将状态设置为非活动.从连接池中获取此连接的时候 使用逻辑关闭
