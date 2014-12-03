@@ -97,6 +97,8 @@ public class ObjectCodec implements Codec<Object> {
 
 			Class<?> oc = ReflectUtil.getClass(input.readUTF8()); // read
 																	// classname
+
+			// FIXME: 这里需要对内部类进行特殊处理.
 			Object instance = oc.newInstance();
 
 			Object fvalue = null;

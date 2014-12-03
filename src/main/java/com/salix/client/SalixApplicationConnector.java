@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 
 import com.salix.beans.SalixServerAddressBean;
 import com.salix.client.connection.ConnectionPool;
@@ -35,10 +36,12 @@ public class SalixApplicationConnector implements Watcher {
 	 * connection application name.
 	 */
 	private String appName;
+
 	/**
 	 * connection service name.
 	 */
 	private List<String> serviceNames;
+
 	/**
 	 * available connection pool.
 	 */
@@ -90,22 +93,12 @@ public class SalixApplicationConnector implements Watcher {
 	}
 
 	/**
-	 * select a available connection pool.
-     * random select algo.
+	 * select a available connection pool. random select algo.
 	 */
 	public ConnectionPool select() throws NoAvailableServerException {
 		if (this.connPools.isEmpty()) {
 			throw new NoAvailableServerException("get connection fail no available server");
 		}
-
-        // test info
-        /*
-        StringBuilder keys = new StringBuilder();
-        for (String key : this.connPools.keySet()) {
-            keys.append(key).append(",");
-        }
-        LOG.info(keys.toString());
-        */
 
 		Collection<ConnectionPool> cps = this.connPools.values();
 		Iterator<ConnectionPool> cpIt = cps.iterator();
@@ -117,14 +110,14 @@ public class SalixApplicationConnector implements Watcher {
 		}
 		ConnectionPool cp = cpIt.next();
 
-        // double check server is alive.
-        if (cp.ensureServerAlive()) {
-            return cp;
-        } else {
-            if (!cp.ensureServerAlive())
-                deadServer(cp.getAddress());
-            return select();
-        }
+		// double check server is alive.
+		if (cp.ensureServerAlive()) {
+			return cp;
+		} else {
+			if (!cp.ensureServerAlive())
+				deadServer(cp.getAddress());
+			return select();
+		}
 	}
 
 	public void deadServer(String deadAddress) {
@@ -132,12 +125,15 @@ public class SalixApplicationConnector implements Watcher {
 			this.connPools.get(deadAddress).shutdown();
 			this.connPools.remove(deadAddress);
 
-            // delete zk node
-            try {
-                this.zkClient.delete(_getZkAliveNodePath() + "/" + deadAddress, 0);
-            } catch (Exception e) {
-                LOG.error(e);
-            }
+			// delete zk node
+			try {
+				String deadAddressPath = _getZkAliveNodePath() + "/" + deadAddress;
+				Stat stat = this.zkClient.exists(deadAddressPath, false);
+				if (stat == null)
+					this.zkClient.delete(_getZkAliveNodePath() + "/" + deadAddress, 0);
+			} catch (Exception e) {
+				LOG.error(e);
+			}
 		}
 	}
 
