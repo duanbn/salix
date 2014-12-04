@@ -23,7 +23,7 @@ public class CpConnection extends AbstractConnection {
 
 	private Semaphore se;
 
-    private ConnectionPool cp;
+	private ConnectionPool cp;
 
 	public CpConnection(String host, int port) throws IOException {
 		super(host, port);
@@ -50,7 +50,7 @@ public class CpConnection extends AbstractConnection {
 			throw new IllegalStateException("连接处于非活动状态, 请重新从连接池中获取连接");
 		}
 
-        return super.send(message);
+		return super.send(message);
 	}
 
 	/**
@@ -58,7 +58,8 @@ public class CpConnection extends AbstractConnection {
 	 */
 	public void close() {
 		this.active = false;
-		this.se.release();
+		if (this.se != null)
+			this.se.release();
 	}
 
 	/**
@@ -68,10 +69,10 @@ public class CpConnection extends AbstractConnection {
 		try {
 			if (isOpen()) {
 				this.channel.close();
-                this.cp.removeConnection(this.getLocalAddress());
-                this.close();
-                LOG.info(this.getLocalAddress() + " disconnection");
-            }
+				this.cp.removeConnection(this.getLocalAddress());
+				this.close();
+				LOG.info(this.getLocalAddress() + " disconnection");
+			}
 		} catch (IOException e) {
 			LOG.warn("关闭通道失败");
 		}
@@ -84,12 +85,12 @@ public class CpConnection extends AbstractConnection {
 		info.append(", port=").append(super.getLocalPort());
 		return info.toString();
 	}
-    
-    public ConnectionPool getCp() {
-        return cp;
-    }
-    
-    public void setCp(ConnectionPool cp) {
-        this.cp = cp;
-    }
+
+	public ConnectionPool getCp() {
+		return cp;
+	}
+
+	public void setCp(ConnectionPool cp) {
+		this.cp = cp;
+	}
 }

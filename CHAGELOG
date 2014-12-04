@@ -1,6 +1,8 @@
 --Version 1.4.2
 1. fix bug
 2. 添加请求和响应的日志
+3. 添加自动扫描classpath根路径下的spring配置文件来启动服务
+4. 完善平滑停止服务
 
 --Version 1.4.1
 1. fix bug

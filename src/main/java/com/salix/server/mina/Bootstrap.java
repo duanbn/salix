@@ -1,4 +1,4 @@
-package com.salix.server;
+package com.salix.server.mina;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -8,17 +8,18 @@ import java.util.Random;
 
 import org.apache.log4j.Logger;
 import org.apache.mina.core.service.IoAcceptor;
-import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import com.salix.server.RpcServiceContext;
 import com.salix.server.mina.codec.RpcProtocolCodecFactory;
 
-public class Bootstrap implements ApplicationContextAware {
+public class Bootstrap implements ApplicationContextAware, InitializingBean, DisposableBean {
 
 	public static final Logger LOG = Logger.getLogger(Bootstrap.class);
 
@@ -29,14 +30,17 @@ public class Bootstrap implements ApplicationContextAware {
 	private String zkHost;
 
 	private ApplicationContext springCtx;
+	private RpcServiceContext rsc;
 
-	public void startup() throws Exception {
+	public void afterPropertiesSet() throws Exception {
 		IoAcceptor acceptor = new NioSocketAcceptor();
 
-		acceptor.getFilterChain().addLast("logger", new LoggingFilter());
+		// LoggingFilter loggingFilter = new LoggingFilter();
+		// loggingFilter.setExceptionCaughtLogLevel(LogLevel.ERROR);
+		// acceptor.getFilterChain().addLast("logger", loggingFilter);
 		acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new RpcProtocolCodecFactory()));
 
-		RpcServiceContext rsc = new RpcServiceContext(this.name, this.zkHost, this.springCtx);
+		rsc = new RpcServiceContext(this.name, this.zkHost, this.springCtx);
 		rsc.setListenPort(port);
 		rsc.init();
 
@@ -45,6 +49,12 @@ public class Bootstrap implements ApplicationContextAware {
 		acceptor.bind(new InetSocketAddress(this.port));
 
 		LOG.info("startup done listen port " + this.port);
+	}
+
+	public void destroy() throws Exception {
+		rsc.destroy();
+
+		LOG.info("salix app " + this.name + " shutdown done listen port " + this.port);
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

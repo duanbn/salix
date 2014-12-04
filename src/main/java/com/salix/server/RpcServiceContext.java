@@ -43,11 +43,11 @@ public class RpcServiceContext {
 
 	private int listenPort;
 
-	public RpcServiceContext(String appName, String zkHost, ApplicationContext springCtx) {
+	public RpcServiceContext(String appName, String zkUrl, ApplicationContext springCtx) {
 		this.appName = appName;
 		this.springCtx = springCtx;
 
-		this.zkClient = ZkUtil.getZooKeeper(zkHost);
+		this.zkClient = ZkUtil.getZooKeeper(zkUrl);
 
 		this.ser = MySerializer.getInstance();
 	}
@@ -62,9 +62,9 @@ public class RpcServiceContext {
 		processorConfig.put(RpcServiceMessage.class, rpcServiceProcessor);
 		LOG.info("load RpcServiceProcessor done");
 
-        IProcessor pingProcessor = new PingProcessor();
-        processorConfig.put(PingMessage.class, pingProcessor);
-        LOG.info("load PingProcessor done");
+		IProcessor pingProcessor = new PingProcessor();
+		processorConfig.put(PingMessage.class, pingProcessor);
+		LOG.info("load PingProcessor done");
 
 		_initMeta();
 	}

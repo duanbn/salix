@@ -1,4 +1,4 @@
-package com.salix.server;
+package com.salix.server.mina;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.BlockingQueue;
@@ -9,8 +9,8 @@ import org.apache.log4j.Logger;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.core.session.*;
-import org.apache.mina.transport.socket.*;
+import org.apache.mina.core.session.IoSessionConfig;
+import org.apache.mina.transport.socket.SocketSessionConfig;
 
 import com.salix.core.message.Message;
 import com.salix.core.message.ShutdownMessage;
@@ -21,6 +21,7 @@ import com.salix.core.ser.SerializeException;
 import com.salix.core.ser.Serializer;
 import com.salix.core.util.ThreadPool;
 import com.salix.exception.ServerInternalException;
+import com.salix.server.RpcServiceContext;
 import com.salix.server.processor.IProcessor;
 
 public class DispatchHandler extends IoHandlerAdapter {
@@ -66,14 +67,14 @@ public class DispatchHandler extends IoHandlerAdapter {
 			session.close(true);
 		}
 
-        IoSessionConfig cfg = session.getConfig();
-        if (cfg instanceof SocketSessionConfig) {
-            ((SocketSessionConfig) cfg).setReceiveBufferSize(4096);
-            ((SocketSessionConfig) cfg).setKeepAlive(true);
-            ((SocketSessionConfig) cfg).setSoLinger(0);
-            ((SocketSessionConfig) cfg).setTcpNoDelay(true);
-            //((SocketSessionConfig) cfg).setWriteTimeout(1000 * 5);
-        }
+		IoSessionConfig cfg = session.getConfig();
+		if (cfg instanceof SocketSessionConfig) {
+			((SocketSessionConfig) cfg).setReceiveBufferSize(4096);
+			((SocketSessionConfig) cfg).setKeepAlive(true);
+			((SocketSessionConfig) cfg).setSoLinger(0);
+			((SocketSessionConfig) cfg).setTcpNoDelay(true);
+			// ((SocketSessionConfig) cfg).setWriteTimeout(1000 * 5);
+		}
 	}
 
 	@Override
@@ -110,7 +111,9 @@ public class DispatchHandler extends IoHandlerAdapter {
 
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-		cause.printStackTrace();
+		if (!cause.getMessage().contains("Connection reset by peer")) {
+			LOG.info(cause);
+		}
 	}
 
 	private class ProcessTask implements Runnable {

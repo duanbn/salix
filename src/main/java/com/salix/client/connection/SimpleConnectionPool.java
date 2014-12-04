@@ -40,7 +40,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	private CheckThread checker;
 
 	public SimpleConnectionPool(String host, int port) {
-        super();
+		super();
 		pool = new HashMap<String, CpConnection>();
 
 		this.host = host;
@@ -88,46 +88,46 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 	 *             连接异常
 	 */
 	private CpConnection createConnection() throws IOException {
-        int retry = 3;
-        while (retry -- > 0) {
-            try {
-                CpConnection conn = new CpConnection(this.host, this.port);
-                conn.setCp(this);
-                LOG.info("create new connection " + conn.getLocalAddress() + " done");
-                return conn;
-            } catch (IOException e) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                    LOG.error(ex);
-                }
-            }
-        }
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				CpConnection conn = new CpConnection(this.host, this.port);
+				conn.setCp(this);
+				LOG.info("create new connection " + conn.getLocalAddress() + " done server is " + this.getAddress());
+				return conn;
+			} catch (IOException e) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException ex) {
+					LOG.error(ex);
+				}
+			}
+		}
 
 		throw new IOException("create new connection to " + this.host + ":" + this.port + " failure");
 	}
 
-    public void removeConnection(String connAddress) {
-        this.pool.remove(connAddress);
-    }
+	public void removeConnection(String connAddress) {
+		this.pool.remove(connAddress);
+	}
 
-    public boolean ensureServerAlive() {
-        boolean isAlive = true;
-        Socket s = null;
-        try {
-            s = new Socket(this.host, this.port);
-        } catch (Exception e) {
-            isAlive = false;
-        } finally {
-            try {
-                if (s != null) {
-                    s.close();
-                }
-            } catch (Exception e) {
-            }
-        }
-        return isAlive;
-    }
+	public boolean ensureServerAlive() {
+		boolean isAlive = true;
+		Socket s = null;
+		try {
+			s = new Socket(this.host, this.port);
+		} catch (Exception e) {
+			isAlive = false;
+		} finally {
+			try {
+				if (s != null) {
+					s.close();
+				}
+			} catch (Exception e) {
+			}
+		}
+		return isAlive;
+	}
 
 	public void setMinConnect(int num) {
 		this.minConnectNum = num;
@@ -157,28 +157,28 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 			throw new IllegalStateException("连接池已经关闭, address=" + this.host + ":" + this.port);
 		}
 
-        try {
-            se.acquire();
-        } catch (InterruptedException e1) {
-            throw new RuntimeException(e1);
-        }
+		try {
+			se.acquire();
+		} catch (InterruptedException e1) {
+			throw new RuntimeException(e1);
+		}
 
 		synchronized (this.pool) {
 			CpConnection conn = null;
 			// 遍历连接池找到可用的连接.
-            Iterator<CpConnection> connIt = this.pool.values().iterator();
-            while (connIt.hasNext()) {
-                CpConnection c = connIt.next();
-                if (c.isOpen() && !c.isActive()) {
-                    c.setActive(se);
-                    if (c.ping() >= 0) {
-                        return c;
-                    } else {
-                        c.close();
-                        connIt.remove();
-                    }
+			Iterator<CpConnection> connIt = this.pool.values().iterator();
+			while (connIt.hasNext()) {
+				CpConnection c = connIt.next();
+				if (c.isOpen() && !c.isActive()) {
+					c.setActive(se);
+					if (c.ping() >= 0) {
+						return c;
+					} else {
+						c.close();
+						connIt.remove();
+					}
 				}
-            }
+			}
 
 			// 当连接池中都不可用时并且没有达到最大连接数则创建新的连接.
 			if (this.pool.size() < maxConnectNum) {
