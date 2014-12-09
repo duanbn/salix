@@ -36,7 +36,7 @@ public class MySerializer implements Serializer {
 	}
 
 	public byte[] ser(Object v) throws SerializeException {
-		return ser(v, true);
+		return ser(v, false);
 	}
 
 	public byte[] ser(Object v, boolean isCompress) throws SerializeException {
@@ -48,8 +48,10 @@ public class MySerializer implements Serializer {
 			Codec codec = config.lookup(v);
 			codec.encode(output, v, config);
 
-			if (isCompress)
-				return GzipCompressUtil.compress(output.byteArray());
+			if (isCompress) {
+				byte[] data = GzipCompressUtil.compress(output.byteArray());
+				return data;
+			}
 
 			return output.byteArray();
 		} catch (Exception e) {

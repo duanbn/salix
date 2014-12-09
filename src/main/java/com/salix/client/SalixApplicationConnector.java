@@ -97,7 +97,7 @@ public class SalixApplicationConnector implements Watcher {
 	 */
 	public ConnectionPool select() throws NoAvailableServerException {
 		if (this.connPools.isEmpty()) {
-			throw new NoAvailableServerException("get connection fail no available server");
+			throw new NoAvailableServerException("no available server");
 		}
 
 		Collection<ConnectionPool> cps = this.connPools.values();
@@ -109,15 +109,7 @@ public class SalixApplicationConnector implements Watcher {
 			}
 		}
 		ConnectionPool cp = cpIt.next();
-
-		// double check server is alive.
-		if (cp.ensureServerAlive()) {
-			return cp;
-		} else {
-			if (!cp.ensureServerAlive())
-				deadServer(cp.getAddress());
-			return select();
-		}
+		return cp;
 	}
 
 	public void deadServer(String deadAddress) {

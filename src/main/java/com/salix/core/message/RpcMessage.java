@@ -19,6 +19,14 @@ public class RpcMessage extends Message {
 		this.args = args;
 	}
 
+    public String getMethodInfo() {
+        StringBuilder info = new StringBuilder(methodName);
+        for (Class<?> paramType : paramTypes) {
+            info.append(paramType.getName());
+        }
+        return info.toString();
+    }
+
 	@Override
 	public String toString() {
 		return "RpcMessage [serviceName=" + serviceName + ", methodName=" + methodName + ", paramTypes="

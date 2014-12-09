@@ -89,8 +89,8 @@ public class SubModel extends BaseTest implements Serializable, Comparable<SubMo
 
 	public Map<String, Object> map = new HashMap<String, Object>();
 
-	private InnerPubStaticModel innerPubStaticModel = new InnerPubStaticModel();
-	private InnerStaticModel innerStaticModel = new InnerStaticModel();
+//	private InnerPubStaticModel innerPubStaticModel = new InnerPubStaticModel();
+//	private InnerStaticModel innerStaticModel = new InnerStaticModel();
 
 	public SubModel() {
 		for (int i = 0; i < 50; i++) {

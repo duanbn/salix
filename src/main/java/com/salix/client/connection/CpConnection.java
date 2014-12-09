@@ -69,8 +69,11 @@ public class CpConnection extends AbstractConnection {
 		try {
 			if (isOpen()) {
 				this.channel.close();
-				this.cp.removeConnection(this.getLocalAddress());
+
 				this.close();
+
+				this.cp.removeConnection(this.getLocalAddress());
+
 				LOG.info(this.getLocalAddress() + " disconnection");
 			}
 		} catch (IOException e) {

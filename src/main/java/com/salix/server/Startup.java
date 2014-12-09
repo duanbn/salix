@@ -23,7 +23,7 @@ public class Startup {
 
 	public static final String SYS_PROP_BASEDIR = "system.root.path";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		List<String> springContextFiles = new ArrayList<String>();
 
 		String baseDir = System.getProperty(SYS_PROP_BASEDIR);
@@ -47,6 +47,7 @@ public class Startup {
 
 		ClassPathXmlApplicationContext springCtx = new ClassPathXmlApplicationContext(
 				springContextFiles.toArray(new String[springContextFiles.size()]));
+		springCtx.start();
 
 		springCtx.registerShutdownHook();
 	}

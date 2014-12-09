@@ -34,7 +34,7 @@ public abstract class AbstractConnection implements Connection {
 	 * 消息头缓冲.
 	 */
 	private static final int HEAD_BODY_LENGTH = 4;
-	protected ByteBuffer headBuf = ByteBuffer.allocate(4);
+	protected ByteBuffer headBuf = ByteBuffer.allocateDirect(4);
 
 	/**
 	 * 序列化工具.
@@ -95,7 +95,7 @@ public abstract class AbstractConnection implements Connection {
 		}
 
         // config client socket
-        channel.socket().setReceiveBufferSize(4096);
+//        channel.socket().setReceiveBufferSize(1024 * 1024);
         channel.socket().setKeepAlive(true);
         channel.socket().setTcpNoDelay(true);
         channel.socket().setSoLinger(true, 0);
@@ -121,7 +121,8 @@ public abstract class AbstractConnection implements Connection {
     public Message send(Message message) throws IOException {
         synchronized(sendLock) {
             write(message);
-            return read();
+            Message msg = read();
+            return msg;
         }
     }
 
@@ -132,17 +133,21 @@ public abstract class AbstractConnection implements Connection {
         // send message to server
         try {
             byte[] b = ser.ser(message);
+
             if (LOG.isDebugEnabled()) {
                 LOG.debug("send data body length=" + b.length);
             }
+
             int alloSize = b.length + HEAD_BODY_LENGTH;
-            ByteBuffer writeBuf = ByteBuffer.allocate(alloSize);
+            ByteBuffer writeBuf = ByteBuffer.allocateDirect(alloSize);
             writeBuf.putInt(b.length).put(b);
             writeBuf.flip();
             while (writeBuf.hasRemaining()) {
                 channel.write(writeBuf);
             }
+
             writeBuf.clear();
+
         } catch (SerializeException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -178,7 +183,7 @@ public abstract class AbstractConnection implements Connection {
             }
 
             byte[] msgData = new byte[msgSize];
-            ByteBuffer bodyBuf = ByteBuffer.allocate(msgSize);
+            ByteBuffer bodyBuf = ByteBuffer.allocateDirect(msgSize);
             readCount = 0;
             // read message data.
             while (readCount < msgSize) {
@@ -191,14 +196,17 @@ public abstract class AbstractConnection implements Connection {
                 }
                 readCount += c;
             }
+
             if (LOG.isDebugEnabled()) {
                 LOG.debug("read message size " + readCount);
             }
+
             bodyBuf.flip();
             bodyBuf.get(msgData, 0, bodyBuf.limit());
             bodyBuf.clear();
 
             Message msg = deser.deser(msgData, Message.class);
+
             return msg;
         } catch (DeserializeException e) {
             throw new RuntimeException(e);

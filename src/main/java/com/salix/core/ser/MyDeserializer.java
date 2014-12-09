@@ -62,16 +62,12 @@ public class MyDeserializer implements Deserializer {
 		}
 	}
 
-	public Object deser(byte[] b) throws DeserializeException {
-		return deser(b, true);
-	}
-
 	public <T> T deser(byte[] b, boolean isCompress, Class<T> T) throws DeserializeException {
 		return (T) deser(b, isCompress);
 	}
 
 	public <T> T deser(byte[] b, Class<T> T) throws DeserializeException {
-		return deser(b, true, T);
+		return deser(b, false, T);
 	}
 
 	private DataInput _getInput() {

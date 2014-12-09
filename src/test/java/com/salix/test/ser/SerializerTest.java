@@ -33,7 +33,7 @@ public class SerializerTest extends BaseTest {
 	public void testThrowable() throws SerializeException, DeserializeException {
 		RuntimeException e = new RuntimeException("test exception");
 		byte[] b = ser.ser(e);
-		RuntimeException de = (RuntimeException) deser.deser(b);
+		RuntimeException de = (RuntimeException) deser.deser(b, RuntimeException.class);
 		System.out.println(de.getMessage());
 	}
 
@@ -54,12 +54,16 @@ public class SerializerTest extends BaseTest {
 			SubModel sm = new SubModel();
 			byte[] bb = null;
 			for (int i = 0; i < 1000; i++) {
+
 				bb = writeJson(sm);
 				readJson(bb, SubModel.class);
+
 				bb = ser.ser(sm, false);
 				deser.deser(bb, false, Model.class);
+
 				bb = writeObject(sm);
 				readObject(bb);
+
 				// bb = writeFjson(sm);
 				// readFjson(bb, SubModel.class);
 			}
@@ -151,7 +155,7 @@ public class SerializerTest extends BaseTest {
 		msg.setServiceName("service_name");
 
 		byte[] b = ser.ser(msg);
-		msg = (RpcMessage) deser.deser(b);
+		msg = deser.deser(b, RpcMessage.class);
 		System.out.println(msg);
 	}
 

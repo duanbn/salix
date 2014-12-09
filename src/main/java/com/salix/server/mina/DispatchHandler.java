@@ -69,11 +69,10 @@ public class DispatchHandler extends IoHandlerAdapter {
 
 		IoSessionConfig cfg = session.getConfig();
 		if (cfg instanceof SocketSessionConfig) {
-			((SocketSessionConfig) cfg).setReceiveBufferSize(4096);
+//			((SocketSessionConfig) cfg).setReceiveBufferSize(1024 * 1024);
 			((SocketSessionConfig) cfg).setKeepAlive(true);
 			((SocketSessionConfig) cfg).setSoLinger(0);
 			((SocketSessionConfig) cfg).setTcpNoDelay(true);
-			// ((SocketSessionConfig) cfg).setWriteTimeout(1000 * 5);
 		}
 	}
 

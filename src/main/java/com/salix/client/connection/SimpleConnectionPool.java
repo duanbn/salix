@@ -171,12 +171,12 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 				CpConnection c = connIt.next();
 				if (c.isOpen() && !c.isActive()) {
 					c.setActive(se);
-					if (c.ping() >= 0) {
-						return c;
-					} else {
-						c.close();
-						connIt.remove();
-					}
+					return c;
+					// FIXME: 需要换一种方式实现.
+					/*
+					 * if (c.ping() >= 0) { return c; } else { c.close();
+					 * connIt.remove(); }
+					 */
 				}
 			}
 
@@ -208,9 +208,11 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 
 	@Override
 	public void doShutdown() {
-		// 关闭连接池的连接.
-		for (CpConnection c : this.pool.values()) {
-			c.closeChannel();
+		synchronized (this.pool) {
+			// 关闭连接池的连接.
+			for (CpConnection c : this.pool.values()) {
+				c.closeChannel();
+			}
 		}
 
 		// 停止清理线程

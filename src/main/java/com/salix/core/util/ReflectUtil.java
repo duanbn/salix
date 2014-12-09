@@ -21,8 +21,10 @@ public class ReflectUtil
      */
     private static final Map<String, Class<?>[]> interfaceCache = new HashMap<String, Class<?>[]>();
 
+    public static final Map<String, Class<?>> classCache = new HashMap<String, Class<?>>();
+    
     /**
-     * 根据字符床获取Class
+     * 根据字符串获取Class
      *
      * @param name class全名
      *
@@ -32,7 +34,11 @@ public class ReflectUtil
     {
         try {
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            Class<?> c = loader.loadClass(name);
+            Class<?> c = classCache.get(name);
+            if (c == null) {
+                c = loader.loadClass(name);
+                classCache.put(name, c);
+            }
             return c;
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException(e);
