@@ -4,6 +4,8 @@ import java.util.Arrays;
 
 public class RpcMessage extends Message {
 
+	private static final long serialVersionUID = 1L;
+
 	private String serviceName;
 
 	private String methodName;
@@ -19,13 +21,13 @@ public class RpcMessage extends Message {
 		this.args = args;
 	}
 
-    public String getMethodInfo() {
-        StringBuilder info = new StringBuilder(methodName);
-        for (Class<?> paramType : paramTypes) {
-            info.append(paramType.getName());
-        }
-        return info.toString();
-    }
+	public String getMethodInfo() {
+		StringBuilder info = new StringBuilder(methodName);
+		for (Class<?> paramType : paramTypes) {
+			info.append(paramType.getName());
+		}
+		return info.toString();
+	}
 
 	@Override
 	public String toString() {
