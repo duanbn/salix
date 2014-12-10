@@ -24,6 +24,7 @@ public class SalixStubBeanDefinitionParser extends SalixBeanDefinitionParser {
 
 		beanDefinition.getPropertyValues().addPropertyValue("serviceName", serviceName);
 		beanDefinition.getPropertyValues().addPropertyValue("interfaceClass", interfaceClass);
+		beanDefinition.getPropertyValues().addPropertyValue("proxyType", 2);
 		beanDefinition.getPropertyValues().addPropertyValue("zkUrl", zkUrl);
 
 		parserContext.getRegistry().registerBeanDefinition(serviceName, beanDefinition);

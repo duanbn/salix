@@ -8,7 +8,7 @@ import com.salix.core.message.RpcMessage;
 
 public class RpcProcessor extends AbstractProcessor {
 
-    private static final Map<String, Method> methodCache = new HashMap<String, Method>();
+	private static final Map<String, Method> methodCache = new HashMap<String, Method>();
 
 	public Message process(Message in) throws Throwable {
 
@@ -24,10 +24,10 @@ public class RpcProcessor extends AbstractProcessor {
 
 		try {
 			Method m = methodCache.get(msg.getMethodInfo());
-            if (m == null) {
-                m = service.getClass().getMethod(methodName, msg.getParamTypes());
-                methodCache.put(msg.getMethodInfo(), m);
-            }
+			if (m == null) {
+				m = service.getClass().getMethod(methodName, msg.getParamTypes());
+				methodCache.put(msg.getMethodInfo(), m);
+			}
 
 			Object returnVal = m.invoke(service, args);
 

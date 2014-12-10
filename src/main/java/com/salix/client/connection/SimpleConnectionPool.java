@@ -172,11 +172,6 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 				if (c.isOpen() && !c.isActive()) {
 					c.setActive(se);
 					return c;
-					// FIXME: 需要换一种方式实现.
-					/*
-					 * if (c.ping() >= 0) { return c; } else { c.close();
-					 * connIt.remove(); }
-					 */
 				}
 			}
 

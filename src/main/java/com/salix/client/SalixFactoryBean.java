@@ -30,23 +30,35 @@ public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, Di
 
 	private String interfaceClass;
 
+	private int proxyType = 1;
+
 	private String zkUrl;
 
 	private ZooKeeper zkClient;
-    /**
-     * keep serviceName - appConnector mapping.
-     * key : service name, value : application connector.
-     */
+
+	/**
+	 * keep serviceName - appConnector mapping. key : service name, value :
+	 * application connector.
+	 */
 	private Map<String, SalixApplicationConnector> appConnectorMap = new HashMap<String, SalixApplicationConnector>();
 
 	@SuppressWarnings("unchecked")
 	public T getObject() throws Exception {
-		ClassLoader cl = Thread.currentThread().getContextClassLoader();
-		Class<?> clazz = Class.forName(interfaceClass);
 
 		RpcInvocationHandler rpcInvokeHandler = new RpcInvocationHandler(serviceName, appConnectorMap);
 
-		return (T) Proxy.newProxyInstance(cl, new Class<?>[] { clazz }, rpcInvokeHandler);
+		T instance = null;
+
+		if (proxyType == 1) {
+			ClassLoader cl = Thread.currentThread().getContextClassLoader();
+			Class<?> clazz = Class.forName(interfaceClass);
+
+			instance = (T) Proxy.newProxyInstance(cl, new Class<?>[] { clazz }, rpcInvokeHandler);
+		} else if (proxyType == 2) {
+			instance = (T) JavassistProxy.newProxyInstance(interfaceClass, rpcInvokeHandler);
+		}
+
+		return instance;
 	}
 
 	public Class<?> getObjectType() {
@@ -105,6 +117,14 @@ public class SalixFactoryBean<T> implements FactoryBean<T>, InitializingBean, Di
 
 	public void setServiceName(String serviceName) {
 		this.serviceName = serviceName;
+	}
+
+	public int getProxyType() {
+		return proxyType;
+	}
+
+	public void setProxyType(int proxyType) {
+		this.proxyType = proxyType;
 	}
 
 	public String getInterfaceClass() {
