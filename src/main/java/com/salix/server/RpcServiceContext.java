@@ -56,15 +56,15 @@ public class RpcServiceContext {
 		IProcessor rpcProcessor = new RpcProcessor();
 		rpcProcessor.setSpringCtx(springCtx);
 		processorConfig.put(RpcMessage.class, rpcProcessor);
-		LOG.info("load RpcProcessor done");
+		LOG.info("[SALIX] - load RpcProcessor done");
 
 		IProcessor rpcServiceProcessor = new RpcServiceProcessor(this);
 		processorConfig.put(RpcServiceMessage.class, rpcServiceProcessor);
-		LOG.info("load RpcServiceProcessor done");
+		LOG.info("[SALIX] - load RpcServiceProcessor done");
 
 		IProcessor pingProcessor = new PingProcessor();
 		processorConfig.put(PingMessage.class, pingProcessor);
-		LOG.info("load PingProcessor done");
+		LOG.info("[SALIX] - load PingProcessor done");
 
 		_initMeta();
 	}

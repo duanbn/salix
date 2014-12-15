@@ -48,13 +48,13 @@ public class Bootstrap implements ApplicationContextAware, InitializingBean, Dis
 
 		acceptor.bind(new InetSocketAddress(this.port));
 
-		LOG.info("startup done listen port " + this.port);
+		LOG.info("[SALIX] - startup done listen port " + this.port);
 	}
 
 	public void destroy() throws Exception {
 		rsc.destroy();
 
-		LOG.info("salix app " + this.name + " shutdown done listen port " + this.port);
+		LOG.info("[SALIX] - salix app " + this.name + " shutdown done listen port " + this.port);
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

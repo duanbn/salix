@@ -93,7 +93,7 @@ public class SimpleConnectionPool extends AbstractLifecycle implements Connectio
 			try {
 				CpConnection conn = new CpConnection(this.host, this.port);
 				conn.setCp(this);
-				LOG.info("create new connection " + conn.getLocalAddress() + " done server is " + this.getAddress());
+				LOG.info("[SALIX] - create new connection " + conn.getLocalAddress() + " done server is " + this.getAddress());
 				return conn;
 			} catch (IOException e) {
 				try {

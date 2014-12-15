@@ -74,7 +74,7 @@ public class CpConnection extends AbstractConnection {
 
 				this.cp.removeConnection(this.getLocalAddress());
 
-				LOG.info(this.getLocalAddress() + " disconnection");
+				LOG.info("[SALIX] - " + this.getLocalAddress() + " disconnection");
 			}
 		} catch (IOException e) {
 			LOG.warn("关闭通道失败");

@@ -43,7 +43,7 @@ public class Startup {
 			}
 		}
 
-		LOG.info("find spring context file " + springContextFiles);
+		LOG.info("[SALIX] - find spring context file " + springContextFiles);
 
 		ClassPathXmlApplicationContext springCtx = new ClassPathXmlApplicationContext(
 				springContextFiles.toArray(new String[springContextFiles.size()]));
