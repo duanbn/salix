@@ -1,3 +1,7 @@
+--Version 1.4.3 (DD20170206)
+1. 基于Netty4将网络层代码进行重构，将salix-demo合并到salix中，salix进行模块化开发
+2. 将com修改为org
+
 --Version 1.4.2
 1. fix bug
 2. 添加请求和响应的日志
