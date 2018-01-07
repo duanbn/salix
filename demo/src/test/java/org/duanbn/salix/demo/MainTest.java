@@ -1,4 +1,4 @@
-package com.salix.demo;
+package org.duanbn.salix.demo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,12 +67,6 @@ public class MainTest extends BaseTest {
         for (Thread t : list) {
             t.join();
         }
-    }
-
-    @Test
-    public void testShutdown() throws Exception {
-        Shutdown sd = new Shutdown("localhost", 9999);
-        sd.doShutdown();
     }
 
     class EchoThread extends Thread {

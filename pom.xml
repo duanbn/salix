@@ -8,12 +8,6 @@
 	<packaging>pom</packaging>
 	<name>salix</name>
 
-	<!-- <distributionManagement> <repository> <id>Releases</id> <name>Internal 
-		Releases</name> <url>http://192.168.1.150:8081/nexus/content/repositories/releases</url> 
-		</repository> <snapshotRepository> <id>Snapshot</id> <name>Internal Snapshot</name> 
-		<url>http://192.168.1.150:8081/nexus/content/repositories/snapshots</url> 
-		</snapshotRepository> </distributionManagement> -->
-
 	<modules>
 		<module>network</module>
 		<module>rpc</module>

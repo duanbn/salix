@@ -1,4 +1,4 @@
-package com.salix.demo;
+package org.duanbn.salix.demo;
 
 import java.sql.Timestamp;
 import java.util.Date;
