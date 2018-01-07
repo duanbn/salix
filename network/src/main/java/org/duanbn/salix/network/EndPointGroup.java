@@ -31,6 +31,6 @@ public interface EndPointGroup extends Lifecycle {
 
     void setUnavalilable(EndPoint endpoint);
 
-    EndPointFactory getRemoteFactory();
+    EndPointFactory getEndPointFactory();
 
 }

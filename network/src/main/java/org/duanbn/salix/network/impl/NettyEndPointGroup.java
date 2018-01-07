@@ -148,7 +148,7 @@ public class NettyEndPointGroup extends AbstractLifecycle implements EndPointGro
     }
 
     @Override
-    public EndPointFactory getRemoteFactory() {
+    public EndPointFactory getEndPointFactory() {
         return this.remoteFactory;
     }
 }
